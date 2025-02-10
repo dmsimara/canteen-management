@@ -19,6 +19,15 @@ export const connectDB = async () => {
                 adminLastName TEXT NOT NULL,
                 lastLogin TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS staff (
+                staffId INTEGER PRIMARY KEY AUTOINCREMENT,
+                staffFirstName TEXT NOT NULL,
+                staffLastName TEXT NOT NULL,
+                stall TEXT NOT NULL,
+                staffEmail TEXT NOT NULL UNIQUE,
+                staffPassword TEXT NOT NULL
+            );
         `);
 
         return db;

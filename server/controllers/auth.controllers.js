@@ -54,6 +54,59 @@ export const adminRegister = async (req, res) => {
     }
 };
 
+export const staffRegister = async (req, res) => {
+    const { staffEmail, staffFirstName, staffLastName, stall, staffPassword, confirmPassword } = req.body;
+
+    try {
+        if (!staffEmail || !staffFirstName || !staffLastName || !stall || !staffPassword || !confirmPassword) {
+            throw new Error("All fields are required");
+        }
+
+        if (staffPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Passwords do not match"
+            });
+        }
+
+        const db = await connectDB(); 
+
+        const userAlreadyExists = await db.get('SELECT * FROM staff WHERE staffEmail = ?', [staffEmail]);
+
+        if (userAlreadyExists) {
+            return res.status(400).json({
+                success: false,
+                message: "User already exists"
+            });
+        }
+
+        const hashedPassword = await bcryptjs.hash(staffPassword, 10);
+
+        const staff = await db.run(
+            'INSERT INTO staff (staffEmail, staffPassword, staffFirstName, staffLastName, stall) VALUES (?, ?, ?, ?, ?)', 
+            [staffEmail, hashedPassword, staffFirstName, staffLastName, stall] 
+        );
+
+        generateTokenAndSetCookie(res, staff.lastID); 
+
+        res.status(201).json({
+            success: true,
+            message: "Staff registered successfully",
+            staff: {
+                staffEmail,
+                staffFirstName,
+                staffLastName,
+                stall
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 export const adminLogin = async (req, res) => {
     const { adminEmail, adminPassword } = req.body;
 
@@ -100,10 +153,63 @@ export const adminLogin = async (req, res) => {
     }
 };
 
+export const staffLogin = async (req, res) => {
+    const { staffEmail, staffPassword } = req.body;
+
+    try {
+        const db = await connectDB();
+
+        const staff = await db.get('SELECT * FROM staff WHERE staffEmail = ?', [staffEmail]);
+
+        if (!staff) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
+
+        const isPasswordValid = await bcryptjs.compare(staffPassword, staff.staffPassword);
+
+        if (!isPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
+
+        generateTokenAndSetCookie(res, staff.staffId);
+
+        res.status(200).json({
+            success: true,
+            message: "Staff logged in successfully",
+            admin: {
+                staffEmail: staff.staffEmail,
+                staffFirstName: staff.staffFirstName,
+                stall: staff.stall,
+                staffLastName: staff.staffLastName
+            }
+        });
+    } catch (error) {
+        console.log("Error in login: ", error);
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 export const adminLogout = async (req, res) => {
     res.clearCookie("token");
     res.status(200).json({
         success: true,
         message: "Admin logged out successfully"
+    });
+};
+
+export const staffLogout = async (req, res) => {
+    res.clearCookie("staffToken");
+    res.status(200).json({
+        success: true,
+        message: "Staff logged out successfully"
     });
 };
