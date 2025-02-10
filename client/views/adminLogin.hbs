@@ -1,0 +1,30 @@
+<div class="container">
+    <div class="leftContainer">
+        <h1>Welcome <span>Back!</span></h1>
+        <h3>Stay on Track, Control Your Canteen Experience</h3>
+        <hr>
+        <form action="/api/auth/admin/login" method="POST" style="width: 60%;">
+            <div class="mb-3">
+                <label for="adminEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="adminEmail" name="adminEmail" required>
+            </div>
+            <div class="mb-3 password-container">
+                <label for="adminPassword" class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="adminPassword" name="adminPassword" required>
+                    <span class="input-group-text" id="togglePassword" style="cursor: pointer;">
+                        <i class="material-icons password-icon">visibility</i>
+                    </span>
+                </div>
+            </div>
+            <p class="create">Don't have an account yet? <a href="/admin/register">Create Here</a></p>
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+    </div>
+
+    <div class="rightContainer">
+        <img src="/images/5.png" alt="Scope Logo" width="500px">
+    </div>
+</div>
+
+<script src="/js/adminLogin.js"></script>

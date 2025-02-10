@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+    /* gradient */
+    --gradient1: #35155d;
+    --gradient2: #512b81;
+    --gradient3: #4477ce;
+    --gradient4: #8cabff;
+    --oceanBlue: #193c79;
+    --babyBlue: #e6edff;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: 'Poppins', sans-serif; 
+    background-color: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex: 0 0 70%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.content .intro {
+    font-weight: 600;
+    font-size: 20px;
+    position: absolute;
+    top: 12.8em;
+    color: var(--oceanBlue);
+    text-transform: uppercase;
+}
+
+.content h2 {
+    position: absolute;
+    top: 7em;
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--gradient2);
+    letter-spacing: 2px;
+}
+
+.logo {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    position: absolute;
+    top: -3em;
+}
+
+footer {
+    position: absolute;
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    height: 30%; 
+    background-image: linear-gradient(to right, var(--gradient1), var(--gradient2), var(--gradient3), var(--gradient4));
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+}
+
+.user-choice {
+    display: flex;
+    gap: 30px;
+    position: absolute;
+    top: 22em;
+    z-index: 1000;
+}
+
+.card-wrapper {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 2em;
+    overflow: hidden;
+    background: transparent;
+    transition: background 0.3s ease;
+}
+
+.card-wrapper.active.tenant-wrapper,
+.card-wrapper:hover.tenant-wrapper {
+    background: linear-gradient(to left, var(--yellow), var(--orange), var(--maroon));
+}
+
+.card-wrapper.active.admin-wrapper,
+.card-wrapper:hover.admin-wrapper {
+    background: linear-gradient(to left, var(--yellow), var(--orange), var(--maroon));
+}
+
+.tenant,
+.admin {
+    position: relative;
+    background-color: var(--babyBlue);
+    height: 13em;
+    width: 13.5em;
+    border-radius: 2em;
+    color: var(--dark-gray);
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.tenant .check,
+.admin .check {
+    position: absolute;
+    left: 7.5em;
+    top: 14px;
+}
+
+.tenant .person {
+    position: absolute;
+    font-size: 100px;
+    top: 45px;
+    left: 60px;
+    color: var(--gradient1);
+}
+
+.admin .person {
+    position: absolute;
+    font-size: 100px;
+    top: 45px;
+    left: 65px;
+    color: var(--gradient1);
+}
+
+.tenant p,
+.admin p {
+    font-size: 20px;
+    font-weight: 600;
+    position: absolute;
+    top: 6.8em;
+    left: 3.8em;
+    color: var(--oceanBlue);
+    text-transform: uppercase;
+}
+
+.card-wrapper.active .check {
+    color: black;
+    background-color: white;
+}
+
+.card-wrapper.active .check .material-icons {
+    color: black;
+}
