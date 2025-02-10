@@ -37,6 +37,10 @@ app.get("/admin/login", (req, res) => {
     res.render("adminLogin", { title: "Scope", styles: ["adminLogin"] });
 })
 
+app.get("/admin/register", (req, res) => {
+    res.render("adminRegister", { title: "Scope", styles: ["adminRegister"] });
+})
+
 app.get("/admin/dashboard", (req, res) => {
     res.render("adminDashboard", { title: "Scope", styles: ["adminDashboard"] });
 });

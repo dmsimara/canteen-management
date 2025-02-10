@@ -1,0 +1,51 @@
+<div class="container">
+    <div class="col-6 form-container d-flex justify-content-center align-items-center">
+        <div class="content">
+            <h2 class="intro">Get <strong>Started</strong></h2>
+            <p class="desc">
+                Manage Your Canteen with Ease and Stay Organized
+            </p>
+        </div>
+        <form action="/api/auth/admin/register" method="POST" style="width: 80%;">
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col">
+                        <label for="adminFirstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="adminFirstName" name="adminFirstName" required>
+                    </div>
+                    <div class="col">
+                        <label for="adminLastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="adminLastName" name="adminLastName" required>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="adminEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="adminEmail" name="adminEmail" required>
+            </div>
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col">
+                        <label for="adminPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="adminPassword" name="adminPassword" required>
+                    </div>
+                    <div class="col">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword"
+                            name="confirmPassword" required>
+                        <div id="passwordError" class="text-danger" style="display:none;">Passwords do not match.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="create">Already have an account? <a href="/admin/login">Log In</a></p>
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+    </div>
+
+    <div class="col-3 logo-container d-flex justify-content-center align-items-center">
+        <img src="/images/5.png" alt="Logo" class="logo">
+    </div>
+</div>
+
+<script src="/js/adminRegister.js"></script>
