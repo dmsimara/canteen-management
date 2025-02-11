@@ -37,12 +37,20 @@ app.get("/admin/login", (req, res) => {
     res.render("adminLogin", { title: "Scope", styles: ["adminLogin"] });
 })
 
+app.get("/staff/login", (req, res) => {
+    res.render("staffLogin", { title: "Scope", styles: ["staffLogin"] });
+})
+
 app.get("/admin/register", (req, res) => {
     res.render("adminRegister", { title: "Scope", styles: ["adminRegister"] });
 })
 
 app.get("/admin/dashboard", (req, res) => {
     res.render("adminDashboard", { title: "Scope", styles: ["adminDashboard"] });
+});
+
+app.get("/staff/dashboard", (req, res) => {
+    res.render("staffDashboard", { title: "Scope", styles: ["staffDashboard"] });
 });
 
 app.use("/api/auth", authRoutes);

@@ -1,0 +1,28 @@
+<div class="container">
+    <div class="leftContainer">
+        <img src="/images/5.png" alt="Scope Logo" width="500px">
+    </div>
+    <div class="rightContainer">
+        <h1>Great to See You, <span>Again!</span></h1>
+        <h3>Manage Your Canteen with Ease and Stay Organized</h3>
+        <hr>
+        <form action="/api/auth/staff/login" method="POST" style="width: 80%;">
+            <div class="mb-3">
+                <label for="staffEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="staffEmail" name="staffEmail" required>
+            </div>
+            <div class="mb-3 password-container">
+                <label for="staffPassword" class="form-label">Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="staffPassword" name="staffPassword" required>
+                    <span class="input-group-text" id="togglePassword" style="cursor: pointer;">
+                        <i class="material-icons password-icon">visibility</i>
+                    </span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/staffLogin.js"></script>
