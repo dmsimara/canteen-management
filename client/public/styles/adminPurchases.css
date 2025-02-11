@@ -18,7 +18,7 @@ html, body {
     height: 100%;
     width: 100%;
     font-family: 'Poppins', sans-serif; 
-    background: white;
+    background: linear-gradient(to bottom right, var(--gradient1), var(--gradient2), var(--gradient3), var(--gradient4));
     overflow: hidden;
 }
 
@@ -59,7 +59,7 @@ a {
 
 .toggler-btn i {
     font-size: 1.5rem;
-    color: black;
+    color: white;
     font-weight: bold;
 }
 
@@ -160,91 +160,4 @@ ul.sidebar-nav .sidebar-item.active {
     background-color: #f0f0f0;
     color: var(--gradient2);
     border-left: 4px solid var(--oceanBlue);
-}
-
-.header {
-    background: linear-gradient(to right, var(--gradient1), var(--gradient2), var(--gradient3), var(--gradient4));
-    height: 180px;
-    margin-top: -28px;
-    border-radius: 30px;
-    color: white;
-    padding: 75px 50px;
-}
-
-.header h1 {
-    font-size: 55px;
-    margin-top: -15px;
-}
-
-.welcome {
-    margin-left: 10px;
-}
-
-.welcome p {
-    font-size: 18px;
-    color: var(--gradient2);
-    margin-bottom: 0;  
-}
-
-.welcome h1 {
-    color: var(--gradient1);
-    font-weight: 700;
-    margin-top: -5px;
-}
-
-.bottom {
-    display: flex;
-    gap: 20px; 
-    width: 100%;  
-}
-
-.left {
-    background-color: var(--violet);
-    flex: 7;  
-    min-width: 0; 
-    min-height: 355px;
-    height: 100%;
-    border-radius: 30px;
-    padding: 20px;
-}
-
-.right {
-    background-color: var(--gradient4);
-    flex: 3;  
-    min-width: 0;
-    min-height: 355px;
-    height: 100%;
-    border-radius: 30px;
-    padding: 20px;
-}
-
-.left .title {
-    display: flex;
-    align-items: center;
-    color: var(--gradient1);
-    border-bottom: 2px solid var(--gradient1);  
-}
-
-.left .title span {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.left .title i {
-    margin-right: -10px;
-    margin-left: 10px;
-}
-
-.right .title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--oceanBlue);
-}
-
-.right .title span {
-    color: white;
-    margin-left: 8px;
-    font-weight: 700;
-    font-size: 20px;
 }

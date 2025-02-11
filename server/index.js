@@ -49,6 +49,27 @@ app.get("/admin/dashboard", (req, res) => {
     res.render("adminDashboard", { title: "Scope", styles: ["adminDashboard"] });
 });
 
+app.get("/admin/purchases", (req, res) => {
+    res.render("adminPurchases", { title: "Scope", styles: ["adminPurchases"] });
+});
+
+app.get("/admin/inventory", (req, res) => {
+    res.render("adminInventory", { title: "Scope", styles: ["adminInventory"] });
+});
+
+app.get("/admin/schedule", (req, res) => {
+    res.render("adminSchedule", { title: "Scope", styles: ["adminSchedule"] });
+});
+
+app.get("/admin/menu", (req, res) => {
+    res.render("adminMenu", { title: "Scope", styles: ["adminMenu"] });
+});
+
+app.get("/admin/staff", (req, res) => {
+    res.render("adminStaff", { title: "Scope", styles: ["adminStaff"] });
+});
+
+// staff pages
 app.get("/staff/dashboard", (req, res) => {
     res.render("staffDashboard", { title: "Scope", styles: ["staffDashboard"] });
 });
