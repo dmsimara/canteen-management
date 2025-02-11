@@ -213,3 +213,66 @@ export const staffLogout = async (req, res) => {
         message: "Staff logged out successfully"
     });
 };
+
+export const addPurchase = async (req, res) => {
+    const { productName, price, quantity, MOP, date } = req.body;
+
+    try {
+        if (!productName || !price || !quantity || !MOP || !date) {
+            throw new Error("All fields are required");
+        }
+
+        const db = await connectDB();
+
+        const product = await db.run('INSERT INTO products (productName, price, quantity, MOP, date) VALUES (?, ?, ?, ?, ?)', 
+            [productName, price, quantity, MOP, date]);
+
+        res.status(201).json({
+            success: true,
+            message: "Purchase added successfully",
+            purchase: {
+                productId: product.lastID,
+                productName,
+                price,
+                quantity,
+                MOP,
+                date
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+export const deletePurchase = async (req, res) => {
+    const { productId } = req.params;
+
+    try {
+        const db = await connectDB();
+
+        const product = await db.get('SELECT * FROM products WHERE productId = ?', [productId]);
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found"
+            });
+        }
+
+        await db.run('DELETE FROM products WHERE productId = ?', [productId]);
+
+        res.status(200).json({
+            success: true,
+            message: "Purchase deleted successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while deleting the purchase",
+            error: error.message
+        });
+    }
+};

@@ -68,13 +68,96 @@
         </nav>
 
         <main class="p-3">
-            <div class="container-fluid">
-                <div class="mb-3 header">
-                    <h5>Hello there,</h5>
-                    <h1><strong>Admin</strong></h1>
+            <div class="container-fluid pb-5">
+                <div class="row">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <h1 class="header">Purchases</h1>
+                        </div>
+                        <div class="col-6 d-flex justify-content-end gap-2">
+                            <form class="d-flex" role="search" method="POST" action="/admin/purchases" novalidate>
+                                <div class="search-bar">
+                                    <input class="form-control form-control-sm me-2 search" type="search" id="search"
+                                        placeholder="Search" name="search" aria-label="Search" autocomplete="off"
+                                        required value="{{lastSearchTerm}}">
+                                    <span class="search-icon">
+                                        <i class="material-icons">search</i>
+                                    </span>
+                                </div>
+                            </form>
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#addPurchaseModal"
+                                class="btn btn-light btn-sm hover-orange">
+                                + Add Purchase
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="table-container table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Product Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Mode of Payment</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col" class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results">
+                                <tr>
+                                    <td>Wireless Mouse</td>
+                                    <td>$15.00</td>
+                                    <td>2</td>
+                                    <td>Credit Card</td>
+                                    <td>2025-02-11</td>
+                                    <td class="total text-end">$30.00</td>
+                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Bluetooth Speaker</td>
+                                    <td>$45.00</td>
+                                    <td>1</td>
+                                    <td>Cash</td>
+                                    <td>2025-02-10</td>
+                                    <td class="total text-end">$45.00</td>
+                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Wireless Keyboard</td>
+                                    <td>$25.00</td>
+                                    <td>3</td>
+                                    <td>Debit Card</td>
+                                    <td>2025-02-09</td>
+                                    <td class="total text-end">$75.00</td>
+                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Smartwatch</td>
+                                    <td>$120.00</td>
+                                    <td>1</td>
+                                    <td>Paypal</td>
+                                    <td>2025-02-08</td>
+                                    <td class="total text-end">$120.00</td>
+                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+        </main>
+
+        <div class="modal fade" id="addPurchaseModal" tabindex="-1" aria-labelledby="addPurchaseModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <form action="/api/auth/admin/add/purchase" method="POST" style="width: 80%;"></form>
+                    </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 </div>
 

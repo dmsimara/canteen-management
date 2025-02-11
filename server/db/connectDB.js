@@ -28,6 +28,15 @@ export const connectDB = async () => {
                 staffEmail TEXT NOT NULL UNIQUE,
                 staffPassword TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS products (
+                productId INTEGER PRIMARY KEY AUTOINCREMENT,
+                productName TEXT NOT NULL,
+                price REAL NOT NULL,
+                quantity INTEGER NOT NULL,
+                MOP TEXT NOT NULL,    
+                date TEXT NOT NULL    
+            );
         `);
 
         return db;
