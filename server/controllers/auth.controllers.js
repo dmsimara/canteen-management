@@ -296,3 +296,26 @@ export const viewPurchases = async (req, res) => {
         });
     }
 };
+
+export const searchPurchases = async (req, res, next) => {
+    try {
+        const searchTerm = req.query.q?.trim() || '';
+        console.log("Search Term:", searchTerm);
+
+        const db = await connectDB();
+
+        const purchases = await db.all(
+            `SELECT * FROM products 
+            WHERE productName LIKE ? 
+            OR MOP LIKE ? 
+            OR date LIKE ?`,
+            [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]
+        );
+
+        return res.json({ success: true, purchases });   
+
+    } catch (error) {
+        console.error('Error executing query:', error);
+        return res.status(500).json({ success: false, message: 'Database query failed' });
+    }
+};

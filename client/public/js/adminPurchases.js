@@ -1,7 +1,24 @@
-const toggler = document.querySelector(".toggler-btn");
-toggler.addEventListener("click", function() {
-    document.querySelector("#sidebar").classList.toggle("collapsed");
-})
+document.addEventListener("DOMContentLoaded", function() {
+    const toggler = document.querySelector(".toggler-btn");
+    const sidebar = document.querySelector("#sidebar");
+
+    const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+
+    if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+    } else {
+        sidebar.classList.remove("collapsed");
+    }
+
+    toggler.addEventListener("click", function() {
+        const isNowCollapsed = sidebar.classList.toggle("collapsed"); 
+
+        localStorage.setItem("sidebarCollapsed", isNowCollapsed.toString());
+
+        console.log("Sidebar collapsed state:", isNowCollapsed);
+        console.log("Stored in localStorage:", localStorage.getItem("sidebarCollapsed"));
+    });
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logoutButton");
@@ -102,24 +119,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-document.addEventListener("DOMContentLoaded", async () => {
-    const tableBody = document.getElementById("results");
-    const noPurchasesRow = document.getElementById("no-purchases");
-    console.log("No Purchases Row:", noPurchasesRow);
-    console.log("Computed Display Style:", window.getComputedStyle(noPurchasesRow).display);
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.querySelector('#search');
+    const resultsBody = document.querySelector('#results');
+    const noPurchasesRow = document.createElement('tr'); 
 
+    noPurchasesRow.innerHTML = `<td colspan="7" class="text-center">No purchases found</td>`;
+    noPurchasesRow.id = "no-purchases";
+    noPurchasesRow.style.display = "none"; 
 
-    async function fetchPurchases() {
+    resultsBody.appendChild(noPurchasesRow);
+
+    async function loadData(query = '') {
         try {
-            const response = await fetch("/api/auth/admin/view/purchases");
+            const response = await fetch(`/api/auth/admin/search?q=${encodeURIComponent(query)}`);
             const data = await response.json();
 
-            tableBody.querySelectorAll("tr:not(#no-purchases)").forEach(row => row.remove());
+            resultsBody.innerHTML = ''; 
 
             if (data.success && data.purchases.length > 0) {
-                noPurchasesRow.style.display = "none";  
+                noPurchasesRow.style.display = "none"; 
 
-                data.purchases.forEach((purchase) => {
+                data.purchases.forEach(purchase => {
                     const total = (purchase.price * purchase.quantity).toFixed(2);  
 
                     const row = `
@@ -135,15 +156,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                             </td>
                         </tr>
                     `;
-
-                    tableBody.insertAdjacentHTML("beforeend", row);
+                    resultsBody.insertAdjacentHTML("beforeend", row);
                 });
             } else {
-                noPurchasesRow.style.removeProperty("display");
-                noPurchasesRow.style.display = "table-row";  
+                resultsBody.appendChild(noPurchasesRow);
+                noPurchasesRow.style.display = "table-row"; 
             }
         } catch (error) {
-            console.error("Error fetching purchases:", error);
+            console.error('Error fetching search results:', error);
         }
     }
 
@@ -159,11 +179,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert("Purchase deleted successfully");
-                document.querySelector(`tr[data-id="${productId}"]`).remove();
+                document.querySelector(`tr[data-id="${productId}"]`)?.remove();
 
-                if (tableBody.querySelectorAll("tr[data-id]").length === 0) {
+                if (resultsBody.querySelectorAll("tr[data-id]").length === 0) {
                     noPurchasesRow.style.display = "table-row";
+                    
+                    setTimeout(() => {
+                        location.reload();
+                    }, 50);  
                 }
             } else {
                 alert(data.message || "Failed to delete purchase");
@@ -173,12 +196,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    tableBody.addEventListener("click", (event) => {
+    resultsBody.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-btn")) {
             const productId = event.target.getAttribute("data-id");
             deletePurchase(productId);
         }
     });
 
-    fetchPurchases();
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        loadData(query);
+    });
+
+    loadData();
 });

@@ -1,7 +1,24 @@
-const toggler = document.querySelector(".toggler-btn");
-toggler.addEventListener("click", function() {
-    document.querySelector("#sidebar").classList.toggle("collapsed");
-})
+document.addEventListener("DOMContentLoaded", function() {
+    const toggler = document.querySelector(".toggler-btn");
+    const sidebar = document.querySelector("#sidebar");
+
+    const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+
+    if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+    } else {
+        sidebar.classList.remove("collapsed");
+    }
+
+    toggler.addEventListener("click", function() {
+        const isNowCollapsed = sidebar.classList.toggle("collapsed"); 
+
+        localStorage.setItem("sidebarCollapsed", isNowCollapsed.toString());
+
+        console.log("Sidebar collapsed state:", isNowCollapsed);
+        console.log("Stored in localStorage:", localStorage.getItem("sidebarCollapsed"));
+    });
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logoutButton");
