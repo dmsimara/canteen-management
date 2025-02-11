@@ -106,41 +106,8 @@
                                 </tr>
                             </thead>
                             <tbody id="results">
-                                <tr>
-                                    <td>Wireless Mouse</td>
-                                    <td>$15.00</td>
-                                    <td>2</td>
-                                    <td>Credit Card</td>
-                                    <td>2025-02-11</td>
-                                    <td class="total text-end">$30.00</td>
-                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
-                                </tr>
-                                <tr>
-                                    <td>Bluetooth Speaker</td>
-                                    <td>$45.00</td>
-                                    <td>1</td>
-                                    <td>Cash</td>
-                                    <td>2025-02-10</td>
-                                    <td class="total text-end">$45.00</td>
-                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
-                                </tr>
-                                <tr>
-                                    <td>Wireless Keyboard</td>
-                                    <td>$25.00</td>
-                                    <td>3</td>
-                                    <td>Debit Card</td>
-                                    <td>2025-02-09</td>
-                                    <td class="total text-end">$75.00</td>
-                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
-                                </tr>
-                                <tr>
-                                    <td>Smartwatch</td>
-                                    <td>$120.00</td>
-                                    <td>1</td>
-                                    <td>Paypal</td>
-                                    <td>2025-02-08</td>
-                                    <td class="total text-end">$120.00</td>
-                                    <td class="text-end"><button class="btn btn-danger delete-btn">Delete</button></td>
+                                <tr id="no-purchases" style="display: none;">
+                                    <td colspan="7" class="text-center">No Purchases Yet</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -153,7 +120,50 @@
             <div class="modal-dialog modal-dialog-centered modal-md">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <form action="/api/auth/admin/add/purchase" method="POST" style="width: 80%;"></form>
+                        <form action="/api/auth/admin/add/purchase" method="POST" id="purchaseForm" style="width: 80%;">
+                            <div class="mb-6">
+                                <label for="productName" class="form-label">PRODUCT NAME</label>
+                                <input type="text" class="form-control" id="productName" name="productName" required>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="price" class="form-label">PRICE (EACH)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₱</span>
+                                        <input type="text" class="form-control" id="price" name="price" pattern="^\d+(\.\d{1,2})?$" required>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label for="quantity" class="form-label">QUANTITY</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="quantity" name="quantity"
+                                            required>
+                                        <span class="input-group-text">pieces</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="MOP" class="form-label">MODE OF PAYMENT</label>
+                                    <select class="form-select" id="MOP" name="MOP" required>
+                                        <option selected disabled value=""></option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="E-wallet/ Bank">E-wallet/ Bank</option>
+                                        <option value="Credit">Credit (Accounts Payable)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col">
+                                    <label for="date" class="form-label">DATE</label>
+                                    <input type="date" class="form-control" id="date" name="date" required>
+                                </div>
+                            </div>
+                            <div class="button-container">
+                                <button type="submit" class="btn btn-primary">Add Purchase</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

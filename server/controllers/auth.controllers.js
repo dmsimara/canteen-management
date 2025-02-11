@@ -276,3 +276,23 @@ export const deletePurchase = async (req, res) => {
         });
     }
 };
+ 
+export const viewPurchases = async (req, res) => {
+    try {
+        const db = await connectDB();
+
+        const products = await db.all('SELECT * FROM products');
+
+        res.status(200).json({
+            success: true,
+            message: "Purchases retrieved successfully",
+            purchases: products  
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the purchases",
+            error: error.message
+        });
+    }
+};
