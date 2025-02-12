@@ -72,10 +72,10 @@
                 <div class="row">
                     <div class="row align-items-center">
                         <div class="col-6">
-                            <h1 class="header">Purchases</h1>
+                            <h1 class="header">Sales</h1>
                         </div>
                         <div class="col-6 d-flex justify-content-end gap-2">
-                            <form class="d-flex" role="search" method="POST" action="/admin/purchases" novalidate>
+                            <form class="d-flex" role="search" method="POST" action="/admin/sales" novalidate>
                                 <div class="search-bar">
                                     <input class="form-control form-control-sm me-2 search" type="text" id="search"
                                         placeholder="Search" name="search" aria-label="Search" autocomplete="off"
@@ -85,9 +85,9 @@
                                     </span>
                                 </div>
                             </form>
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#addPurchaseModal"
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#addRecordsModal"
                                 class="btn btn-light btn-sm hover-orange">
-                                + Add Purchase
+                                + Add Record
                             </a>
                         </div>
                     </div>
@@ -96,18 +96,18 @@
                         <table class="table table-bordered">
                             <thead class="table-light">
                                 <tr>
-                                    <th scope="col">Product Name</th>
-                                    <th scope="col">Price</th>
-                                    <th scope="col">Quantity</th>
-                                    <th scope="col">Mode of Payment</th>
-                                    <th scope="col">Date</th>
-                                    <th scope="col">Total</th>
+                                    <th scope="col">Canteen</th>
+                                    <th scope="col">Stall</th>
+                                    <th scope="col">Sales Date</th>
+                                    <th scope="col">Cost</th>
+                                    <th scope="col">Cash Collected</th>
+                                    <th scope="col">Profit</th>
                                     <th scope="col" class="text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="results">
                                 <tr id="no-purchases" style="display: none;">
-                                    <td colspan="7" class="text-center">No Purchases Yet</td>
+                                    <td colspan="7" class="text-center">No Records Yet</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -116,7 +116,7 @@
             </div>
         </main>
 
-        <div class="modal fade" id="addPurchaseModal" tabindex="-1" aria-labelledby="addPurchaseModalLabel"
+        <div class="modal fade" id="addRecordsModal" tabindex="-1" aria-labelledby="addRecordsModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-md">
                 <div class="modal-content">

@@ -97,6 +97,34 @@ export const connectDB = async () => {
         await db.exec("DROP TABLE inventory;");
         await db.exec("ALTER TABLE inventory_new RENAME TO inventory;");
 
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS sales_reports (
+                reportId INTEGER PRIMARY KEY AUTOINCREMENT,
+                stallId INTEGER NOT NULL,
+                canteenId INTEGER NOT NULL,
+                profit REAL NOT NULL,
+                cost REAL NOT NULL,
+                cash REAL NOT NULL,
+                salesDate TEXT NOT NULL DEFAULT CURRENT_DATE,
+                FOREIGN KEY (stallId) REFERENCES stalls(stallId) ON DELETE CASCADE,
+                FOREIGN KEY (canteenId) REFERENCES canteens(canteenId) ON DELETE CASCADE
+            );
+        `);
+
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS sales(
+                reportId INTEGER PRIMARY KEY AUTOINCREMENT,
+                stallId INTEGER NOT NULL,
+                canteenId INTEGER NOT NULL,
+                profit REAL NOT NULL,
+                cost REAL NOT NULL,
+                cash REAL NOT NULL,
+                salesDate TEXT NOT NULL DEFAULT CURRENT_DATE,
+                FOREIGN KEY (stallId) REFERENCES stalls(stallId) ON DELETE CASCADE,
+                FOREIGN KEY (canteenId) REFERENCES canteens(canteenId) ON DELETE CASCADE
+            );
+        `);
+
         await db.run("COMMIT");
 
         return db;

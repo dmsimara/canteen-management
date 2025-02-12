@@ -305,6 +305,49 @@ export const addInventory = async (req, res) => {
     }
 };
 
+export const addSales = async (req, res) => {
+    const { salesDate, canteenId, stallId, cost, cash } = req.body;
+
+    let db;
+    try {
+        if (!salesDate || !canteenId || !stallId || !cost || !cash) {
+            throw new Error("All fields are required");
+        }
+
+        db = await connectDB();
+
+        const profit = cash - cost; 
+
+        const sales = await db.run(
+            'INSERT INTO sales (salesDate, canteenId, stallId, cost, cash, profit) VALUES (?,?,?,?,?,?)',
+            [salesDate, canteenId, stallId, cost, cash, profit]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Sales added successfully",
+            sales: {
+                reportId: sales.lastID,
+                salesDate,
+                canteenId,
+                stallId,
+                cost,
+                cash,
+                profit 
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
+    }
+};
+
 export const addStallA = async (req, res) => {
     const { stallName, category } = req.body;
     const canteenId = 1; 
@@ -417,6 +460,37 @@ export const deletePurchase = async (req, res) => {
         }
     }
 };
+
+export const deleteSales = async (req, res) => {
+    const { reportId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+
+        const sales = await db.get('SELECT * FROM sales WHERE reportId = ?', [reportId]);
+
+        if (!sales) {
+            return res.status(404).json({
+                success: false,
+                message: "Sales report not found"
+            });
+        }
+
+        await db.run('DELETE FROM sales WHERE reportId = ?', [reportId]);
+
+        res.status(200).json({
+            success: true,
+            message: "Sales report deleted successfully!"
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: "An error occurred while deleting the sales report",
+            error: error.message
+        })
+    }
+}
 
 export const deleteStall = async (req, res) => {
     const { stallId } = req.params;
@@ -594,6 +668,27 @@ export const viewStallsB = async (req, res) => {
     }
 };
 
+export const viewSales = async (req, res) => {
+    let db;
+    try {
+        db = await connectDB();
+
+        const sales = await db.all('SELECT * FROM sales');
+
+        res.status(200).json({
+            success: true,
+            message: "Sales retrieved successfully",
+            sales: sales
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the sales",
+            error: error.message
+        });
+    }
+}
+
 export const searchPurchases = async (req, res, next) => {
     let db;
     try {
@@ -656,6 +751,60 @@ export const searchInventory = async (req, res, next) => {
     } catch (error) {
         console.error("Error executing inventory query:", error);
         return res.status(500).json({ success: false, message: "Database query failed" });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
+export const updateSales = async (req, res) => {
+    const { reportId } = req.params;
+    const { salesDate, cash, cost, canteenId, stallId } = req.body;
+
+    let db;
+    try {
+        if (!salesDate || !cash || !canteenId || !stallId || !cost) {
+            throw new Error("All fields are required");
+        }
+
+        let profit = cash - cost;  
+
+        db = await connectDB();
+
+        const result = await db.run(
+            `UPDATE sales 
+             SET salesDate = ?, cash = ?, cost = ?, canteenId = ?, stallId = ?, profit = ? 
+             WHERE reportId = ?`,
+            [salesDate, cash, cost, canteenId, stallId, profit, reportId]
+        );
+
+        if (result.changes === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Sale report not found or no changes made."
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Sale report updated successfully",
+            updatedSale: {
+                reportId,
+                salesDate,
+                cash,
+                cost,
+                profit,  
+                canteenId,
+                stallId
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: "Invalid request payload",
+            error: error.message
+        });
     } finally {
         if (db) {
             await db.close();
@@ -742,3 +891,30 @@ export const getInventory = async (req, res) => {
         }
     }
 };
+
+export const getSales = async (req, res) => {
+    const { reportId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+
+        const sale = await db.get(
+            "SELECT * FROM sales WHERE reportId =?",
+            [reportId]
+        );
+
+        if (!sale) {
+            return res.status(404).json({ success: false, message: "Sale report not found" });
+        }
+
+        res.json({ success: true, sale });
+    } catch (error) {
+        console.error("Error fetching sale report:", error);
+        res.status(500).json({ success: false, message: "Database query failed" });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+}

@@ -1,5 +1,5 @@
 import express from 'express';
-import { addInventory, addPurchase, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deletePurchase, deleteStall, getInventory, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, viewInventory, viewPurchases, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
+import { addInventory, addPurchase, addSales, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deletePurchase, deleteSales, deleteStall, getInventory, getSales, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, updateSales, viewInventory, viewPurchases, viewSales, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
@@ -21,6 +21,11 @@ router.get("/admin/view/inventory/:stallId", viewInventory);
 router.get("/admin/search/inventory", searchInventory);
 router.patch("/admin/inventory/update/:inventoryId", updateInventory);
 router.get("/admin/inventory/:inventoryId", getInventory);
+router.post("/admin/add/sales", addSales);
+router.delete('/admin/sales/:reportId', deleteSales);
+router.get("/admin/view/sales", viewSales);
+router.patch("/admin/sales/update/:reportId", updateSales);
+router.get("/admin/sales/edit/:reportId", getSales);
 
 
 router.post("/staff/register", staffRegister);
