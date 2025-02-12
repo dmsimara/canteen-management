@@ -65,6 +65,10 @@ app.get("/admin/inventory/canteen/secondary", (req, res) => {
     res.render("secondCanteen", { title: "Scope", styles: ["secondCanteen"] });
 })
 
+app.get("/admin/inventory/stall/:stallId", (req, res) => {
+    res.render("stallInventory", { title: "Scope", styles: ["stallInventory"] });
+});
+
 app.get("/admin/schedule", (req, res) => {
     res.render("adminSchedule", { title: "Scope", styles: ["adminSchedule"] });
 });

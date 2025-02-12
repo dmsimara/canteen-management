@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     async function fetchStalls() {
         try {
-            const response = await fetch('/api/auth/admin/view/stalls/a');
+            const response = await fetch('/api/auth/admin/view/stalls/b');
             const data = await response.json();
 
             stallContainer.innerHTML = ""; 
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
         submitButton.disabled = true;
 
         try {
-            const response = await fetch("/api/auth/admin/inventory/stall/a", {
+            const response = await fetch("/api/auth/admin/inventory/stall/b", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
