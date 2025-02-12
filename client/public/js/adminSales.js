@@ -74,139 +74,135 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("purchaseForm");  
-    const submitButton = form.querySelector("button[type='submit']");
+document.addEventListener("DOMContentLoaded", async () => {
+    const resultsTable = document.getElementById("results");
+    const noPurchasesRow = document.getElementById("no-purchases");
 
-    form.addEventListener("submit", async (event) => {
-        event.preventDefault();
+    try {
+        const response = await fetch("/api/auth/admin/view/sales");
+        const data = await response.json();
 
-        const productName = document.getElementById("productName").value.trim();
-        const price = parseFloat(document.getElementById("price").value).toFixed(2);  
-        const quantity = parseInt(document.getElementById("quantity").value, 10);
-        const MOP = document.getElementById("MOP").value;
-        const date = document.getElementById("date").value;
+        if (!data.success || !data.sales.length) {
+            noPurchasesRow.style.display = "table-row";  
+            return;
+        }
 
-        submitButton.disabled = true;
+        resultsTable.innerHTML = "";  
+
+        data.sales.forEach((sale) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${sale.canteenId || "N/A"}</td>
+                <td>${sale.stallId || "N/A"}</td>
+                <td>${sale.salesDate || "N/A"}</td>
+                <td>₱${parseFloat(sale.cost).toFixed(2)}</td>
+                <td>₱${parseFloat(sale.cash).toFixed(2)}</td>
+                <td>₱${parseFloat(sale.profit).toFixed(2)}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-warning edit-btn" data-id="${sale.reportId}">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-id="${sale.reportId}">Delete</button>
+                </td>
+            `;
+
+            resultsTable.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching sales:", error);
+        noPurchasesRow.style.display = "table-row";  
+    }
+});
+
+document.getElementById("results").addEventListener("click", async (event) => {
+    if (event.target.classList.contains("delete-btn")) {
+        const reportId = event.target.dataset.id;
+
+        if (!confirm("Are you sure you want to delete this sales report?")) return;
 
         try {
-            const response = await fetch("/api/auth/admin/add/purchase", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    productName,
-                    price: parseFloat(price),  
-                    quantity,
-                    MOP,
-                    date,
-                }),
+            const response = await fetch(`/api/auth/admin/sales/${reportId}`, {
+                method: "DELETE",
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (response.ok) {
-                alert(data.message);
-                window.location.reload();
+            if (result.success) {
+                alert("Sales report deleted successfully!");
+                location.reload();  
             } else {
-                alert(data.message || "Failed to add purchase. Please try again.");
+                alert(result.message);
             }
         } catch (error) {
-            console.error("Error:", error);
-            alert("An error occurred. Please try again later.");
-        } finally {
-            submitButton.disabled = false;
+            alert("An error occurred while deleting the sales report.");
+            console.error(error);
+        }
+    }
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const canteenSelect = document.getElementById("canteenId");
+    const stallSelect = document.getElementById("stallId");
+
+    canteenSelect.addEventListener("change", async () => {
+        const canteenId = canteenSelect.value;
+
+        if (!canteenId) {
+            stallSelect.innerHTML = `<option selected disabled value="">Select a stall</option>`;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/auth/admin/view/stalls?canteenId=${canteenId}`);
+            const data = await response.json();
+
+            if (!data.success || !data.stalls.length) {
+                stallSelect.innerHTML = `<option selected disabled value="">No stalls available</option>`;
+                return;
+            }
+
+            stallSelect.innerHTML = `<option selected disabled value="">Select a stall</option>`;
+            data.stalls.forEach(stall => {
+                const option = document.createElement("option");
+                option.value = stall.stallId;
+                option.textContent = stall.stallName;
+                stallSelect.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error("Error fetching stalls:", error);
+            stallSelect.innerHTML = `<option selected disabled value="">Error loading stalls</option>`;
         }
     });
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.querySelector('#search');
-    const resultsBody = document.querySelector('#results');
-    const noPurchasesRow = document.createElement('tr'); 
+document.addEventListener("DOMContentLoaded", () => {
+    const salesForm = document.getElementById("salesForm");
 
-    noPurchasesRow.innerHTML = `<td colspan="7" class="text-center">No purchases found</td>`;
-    noPurchasesRow.id = "no-purchases";
-    noPurchasesRow.style.display = "none"; 
+    salesForm.addEventListener("submit", async (event) => {
+        event.preventDefault(); 
 
-    resultsBody.appendChild(noPurchasesRow);
-
-    async function loadData(query = '') {
-        try {
-            const response = await fetch(`/api/auth/admin/search?q=${encodeURIComponent(query)}`);
-            const data = await response.json();
-
-            resultsBody.innerHTML = ''; 
-
-            if (data.success && data.purchases.length > 0) {
-                noPurchasesRow.style.display = "none"; 
-
-                data.purchases.forEach(purchase => {
-                    const total = (purchase.price * purchase.quantity).toFixed(2);  
-
-                    const row = `
-                        <tr data-id="${purchase.productId}">
-                            <td>${purchase.productName}</td>
-                            <td>₱${purchase.price.toFixed(2)}</td>
-                            <td>${purchase.quantity}</td>
-                            <td>${purchase.MOP}</td>
-                            <td>${purchase.date}</td>
-                            <td class="total text-end">₱${total}</td>
-                            <td class="text-end">
-                                <button class="btn btn-danger delete-btn" data-id="${purchase.productId}">Delete</button>
-                            </td>
-                        </tr>
-                    `;
-                    resultsBody.insertAdjacentHTML("beforeend", row);
-                });
-            } else {
-                resultsBody.appendChild(noPurchasesRow);
-                noPurchasesRow.style.display = "table-row"; 
-            }
-        } catch (error) {
-            console.error('Error fetching search results:', error);
-        }
-    }
-
-    async function deletePurchase(productId) {
-        if (!confirm("Are you sure you want to delete this purchase?")) return;
+        const formData = new FormData(salesForm);
+        const salesData = Object.fromEntries(formData.entries()); 
 
         try {
-            const response = await fetch(`/api/auth/admin/purchases/${productId}`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" }
+            const response = await fetch("/api/auth/admin/add/sales", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(salesData),
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (response.ok) {
-                document.querySelector(`tr[data-id="${productId}"]`)?.remove();
-
-                if (resultsBody.querySelectorAll("tr[data-id]").length === 0) {
-                    noPurchasesRow.style.display = "table-row";
-                    
-                    setTimeout(() => {
-                        location.reload();
-                    }, 50);  
-                }
+            if (result.success) {
+                alert("Sales record added successfully!");
+                window.location.reload(); 
             } else {
-                alert(data.message || "Failed to delete purchase");
+                alert(`Error: ${result.message}`);
             }
         } catch (error) {
-            console.error("Error deleting purchase:", error);
-        }
-    }
-
-    resultsBody.addEventListener("click", (event) => {
-        if (event.target.classList.contains("delete-btn")) {
-            const productId = event.target.getAttribute("data-id");
-            deletePurchase(productId);
+            console.error("Error adding sales:", error);
+            alert("Failed to add sales. Please try again.");
         }
     });
-
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.trim();
-        loadData(query);
-    });
-
-    loadData();
 });

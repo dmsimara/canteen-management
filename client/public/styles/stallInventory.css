@@ -291,6 +291,7 @@ thead th {
 
 .edit-btn:hover {
     background: var(--gradient1);
+    color: white !important;
 }
 
 

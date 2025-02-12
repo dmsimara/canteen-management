@@ -918,3 +918,47 @@ export const getSales = async (req, res) => {
         }
     }
 }
+
+export const filterSales = async (req, res) => {
+    const { startDate, endDate } = req.body;
+
+    try {
+        const db = await connectDB();
+
+        let query = `SELECT * FROM sales`;
+        let params = [];
+
+        if (startDate && endDate) {
+            query += ` WHERE salesDate BETWEEN ? AND ?`;
+            params.push(startDate, endDate);
+        }
+
+        const sales = await db.all(query, params);
+        await db.close();
+
+        res.render("admin/sales", { sales, lastStartDate: startDate, lastEndDate: endDate });
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+export const viewStalls = async (req, res) => {
+    const { canteenId } = req.query;
+
+    if (!canteenId) {
+        return res.status(400).json({ success: false, message: "canteenId is required" });
+    }
+
+    let db;
+    try {
+        db = await connectDB();
+        const stalls = await db.all("SELECT * FROM stalls WHERE canteenId = ?", [canteenId]);
+
+        res.status(200).json({ success: true, stalls });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error retrieving stalls", error: error.message });
+    } finally {
+        if (db) await db.close();
+    }
+};
