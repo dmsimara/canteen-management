@@ -247,6 +247,74 @@ export const addPurchase = async (req, res) => {
     }
 }
 
+export const addStallA = async (req, res) => {
+    const { stallName, category } = req.body;
+    const canteenId = 1; 
+
+    try {
+        if (!stallName || !category) {
+            throw new Error("All fields are required");
+        }
+
+        const db = await connectDB();
+
+        const result = await db.run(
+            'INSERT INTO stalls (stallName, category, canteenId) VALUES (?, ?, ?)',
+            [stallName, category, canteenId]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Stall added successfully",
+            stall: {
+                stallId: result.lastID,  
+                stallName,
+                category,
+                canteenId  
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+export const addStallB = async (req, res) => {
+    const { stallName, category } = req.body;
+    const canteenId = 2;  
+
+    try {
+        if (!stallName || !category) {
+            throw new Error("All fields are required");
+        }
+
+        const db = await connectDB();
+
+        const result = await db.run(
+            'INSERT INTO stalls (stallName, category, canteenId) VALUES (?, ?, ?)',
+            [stallName, category, canteenId]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Stall added successfully",
+            stall: {
+                stallId: result.lastID,  
+                stallName,
+                category,
+                canteenId  
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 export const deletePurchase = async (req, res) => {
     const { productId } = req.params;
 
@@ -276,6 +344,46 @@ export const deletePurchase = async (req, res) => {
         });
     }
 };
+
+export const deleteStall = async (req, res) => {
+    const { stallId } = req.params;
+
+    try {
+        const db = await connectDB();
+
+        const stall = await db.get('SELECT * FROM stalls WHERE stallId = ?', [stallId]);
+
+        if (!stall) {
+            return res.status(404).json({
+                success: false,
+                message: "Stall not found"
+            });
+        }
+
+        const inventoryItems = await db.get('SELECT * FROM inventory WHERE stallId = ?', [stallId]);
+
+        if (inventoryItems) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot delete stall. Please delete the associated inventory items first.",
+            });
+        }
+
+        // if no inventory items found
+        await db.run('DELETE FROM stalls WHERE stallId = ?', [stallId]);
+
+        res.status(200).json({
+            success: true,
+            message: "Stall deleted successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while deleting the stall",
+            error: error.message,
+        });
+    }
+}
  
 export const viewPurchases = async (req, res) => {
     try {
@@ -292,6 +400,50 @@ export const viewPurchases = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "An error occurred while retrieving the purchases",
+            error: error.message
+        });
+    }
+};
+
+export const viewStallsA = async (req, res) => {
+    try {
+        const db = await connectDB();
+
+        const stalls = await db.all('SELECT * FROM stalls WHERE canteenId = 1');
+
+        await db.close();
+
+        res.status(200).json({
+            success: true,
+            message: "Stalls retrieved successfully",
+            stalls: stalls  
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the stalls",
+            error: error.message
+        });
+    }
+};
+
+export const viewStallsB = async (req, res) => {
+    try {
+        const db = await connectDB();
+
+        const stalls = await db.all('SELECT * FROM stalls WHERE canteenId = 2');
+
+        await db.close();
+
+        res.status(200).json({
+            success: true,
+            message: "Stalls retrieved successfully",
+            stalls: stalls  
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the stalls",
             error: error.message
         });
     }

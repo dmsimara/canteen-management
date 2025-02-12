@@ -1,0 +1,138 @@
+<div class="d-flex">
+    <aside id="sidebar">
+        <div class="sidebar-logo">
+            <img src="/images/SCOOP.png" alt="Scope Logo" width="150px">
+        </div>
+        <ul class="sidebar-nav p-0">
+            <li class="sidebar-header">
+                Menu
+            </li>
+            <li id="dashboard" class="sidebar-item">
+                <a href="/admin/dashboard" class="sidebar-link">
+                    <i class="material-icons">dashboard</i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-header">
+                Others
+            </li>
+            <li id="purchases" class="sidebar-item">
+                <a href="/admin/purchases" class="sidebar-link">
+                    <i class="material-icons">shopping_cart_checkout</i>
+                    <span>Purchases</span>
+                </a>
+            </li>
+            <li id="inventory" class="sidebar-item">
+                <a href="/admin/inventory" class="sidebar-link">
+                    <i class="material-icons">inventory</i>
+                    <span>Inventory</span>
+                </a>
+            </li>
+            <li id="schedule" class="sidebar-item">
+                <a href="/admin/schedule" class="sidebar-link">
+                    <i class="material-icons">event</i>
+                    <span>Schedule</span>
+                </a>
+            </li>
+            <li id="menu" class="sidebar-item">
+                <a href="/admin/menu" class="sidebar-link">
+                    <i class="material-icons">restaurant</i>
+                    <span>Menu</span>
+                </a>
+            </li>
+            <li id="staff" class="sidebar-item">
+                <a href="/admin/staff" class="sidebar-link">
+                    <i class="material-icons">groups</i>
+                    <span>Staff</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="profile-container">
+                <div class="profile-circle">
+                    <!-- Profile picture will go here -->
+                </div>
+                <button id="logoutButton" class="logout-btn">
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <nav class="navbar navbar-expand">
+            <button class="toggler-btn" type="button">
+                <i class="material-icons">menu</i>
+            </button>
+        </nav>
+
+        <main class="p-3">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <h1 class="header">Inventory</h1>
+                        </div>
+                    </div>
+
+                    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/inventory">Canteens</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Main Canteen</li>
+                        </ol>
+                    </nav>
+
+                    <div class="card-container">
+                        <a href="/admin/inventory/canteen/main" class="text-decoration-none">
+                            <div class="card" style="width: 18rem; cursor: pointer;">
+                                <img src="/images/canteen1.jpg" class="card-img-top" alt="Canteen 1">
+                                <div class="card-body">
+                                    <h5 class="card-title">Stall A</h5>
+                                    <p class="card-description">Category</p>
+                                    <a href="#" class="btn btn-primary">View</a>
+                                    <a href="#" class="btn btn-secondary">Delete</a>
+                                </div>
+                            </div>
+                        </a>
+
+
+                        <a href="/admin/inventory/canteen/secondary" class="text-decoration-none">
+                            <div class="card" style="width: 18rem; cursor: pointer;">
+                                <img src="/images/canteen1.jpg" class="card-img-top" alt="Canteen 1">
+                                <div class="card-body">
+                                    <h5 class="card-title">Stall B</h5>
+                                    <p class="card-description">Category</p>
+                                    <a href="#" class="btn btn-primary">View</a>
+                                    <a href="#" class="btn btn-secondary">Delete</a>
+                                </div>
+                            </div>
+                        </a>
+
+                        <div class="card add-card text-center d-flex align-items-center justify-content-center"
+                            style="width: 18rem; cursor: pointer; background-color: #f8f9fa; border: 2px dashed #6c757d;"
+                            data-bs-toggle="modal" data-bs-target="#addStallModal">
+                            <div class="card-body">
+                                <i class="material-icons">add</i>
+                                <h5 class="card-title">Add Stall</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="modal fade" id="addStallModal" tabindex="-1" aria-labelledby="addStallModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <h1>HELLO</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/mainCanteen.js"></script>
