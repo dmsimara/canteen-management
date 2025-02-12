@@ -83,38 +83,17 @@
                         </ol>
                     </nav>
 
-                    <div class="card-container">
-                        <a href="/admin/inventory/canteen/main" class="text-decoration-none">
-                            <div class="card" style="width: 18rem; cursor: pointer;">
-                                <img src="/images/canteen1.jpg" class="card-img-top" alt="Canteen 1">
-                                <div class="card-body">
-                                    <h5 class="card-title">Stall A</h5>
-                                    <p class="card-description">Category</p>
-                                    <a href="#" class="btn btn-primary">View</a>
-                                    <a href="#" class="btn btn-secondary">Delete</a>
-                                </div>
-                            </div>
-                        </a>
+                    <div class="card-container" id="stall-container">
+                        <!-- Stall cards will be added dynamically here -->
 
-
-                        <a href="/admin/inventory/canteen/secondary" class="text-decoration-none">
-                            <div class="card" style="width: 18rem; cursor: pointer;">
-                                <img src="/images/canteen1.jpg" class="card-img-top" alt="Canteen 1">
-                                <div class="card-body">
-                                    <h5 class="card-title">Stall B</h5>
-                                    <p class="card-description">Category</p>
-                                    <a href="#" class="btn btn-primary">View</a>
-                                    <a href="#" class="btn btn-secondary">Delete</a>
-                                </div>
-                            </div>
-                        </a>
-
-                        <div class="card add-card text-center d-flex align-items-center justify-content-center"
+                        <!-- "Add Stall" Button (Always Visible) -->
+                        <div id="add-stall"
+                            class="add-card text-center d-flex align-items-center justify-content-center"
                             style="width: 18rem; cursor: pointer; background-color: #f8f9fa; border: 2px dashed #6c757d;"
                             data-bs-toggle="modal" data-bs-target="#addStallModal">
                             <div class="card-body">
                                 <i class="material-icons">add</i>
-                                <h5 class="card-title">Add Stall</h5>
+                                <h5 class="card-title add-title">Add Stall</h5>
                             </div>
                         </div>
                     </div>

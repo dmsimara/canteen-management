@@ -308,3 +308,7 @@ ul.sidebar-nav .sidebar-item.active {
 .btn-secondary:hover {
     background-color: #c9302c; 
 }
+
+.add-title {
+    margin-bottom: 5px;
+}
