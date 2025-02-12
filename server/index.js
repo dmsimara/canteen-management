@@ -65,9 +65,36 @@ app.get("/admin/inventory/canteen/secondary", (req, res) => {
     res.render("secondCanteen", { title: "Scope", styles: ["secondCanteen"] });
 })
 
-app.get("/admin/inventory/stall/:stallId", (req, res) => {
-    res.render("stallInventory", { title: "Scope", styles: ["stallInventory"] });
+app.get("/admin/inventory/stall/:stallId", async (req, res) => {
+    const { stallId } = req.params;
+    try {
+        const db = await connectDB();
+        const stall = await db.get("SELECT * FROM stalls WHERE stallId = ?", [stallId]);
+        await db.close();
+
+        if (!stall) {
+            return res.status(404).send("Stall not found");
+        }
+
+        let canteenName = "Unknown Canteen";
+        if (stall.canteenId === 1) {
+            canteenName = "Main Canteen";
+        } else if (stall.canteenId === 2) {
+            canteenName = "Secondary Canteen";
+        }
+
+        res.render("stallInventory", {
+            title: "Scope",
+            styles: ["stallInventory"],
+            stallName: stall.stallName,
+            canteenName: canteenName
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error loading stall inventory");
+    }
 });
+
 
 app.get("/admin/schedule", (req, res) => {
     res.render("adminSchedule", { title: "Scope", styles: ["adminSchedule"] });

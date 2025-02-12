@@ -1,5 +1,5 @@
 import express from 'express';
-import { addPurchase, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deletePurchase, deleteStall, searchPurchases, staffLogin, staffLogout, staffRegister, viewPurchases, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
+import { addInventory, addPurchase, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deletePurchase, deleteStall, searchPurchases, staffLogin, staffLogout, staffRegister, viewInventory, viewPurchases, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
@@ -15,6 +15,9 @@ router.post("/admin/inventory/stall/b", addStallB);
 router.get("/admin/view/stalls/a", viewStallsA);
 router.get("/admin/view/stalls/b", viewStallsB);
 router.delete('/admin/inventory/stall/:stallId', deleteStall);
+router.post("/admin/inventory/stall/:stallId", addInventory);
+router.delete('/admin/stall/inventory/:inventoryId', deleteInventory);
+router.get("/admin/view/inventory/:stallId", viewInventory);
 
 router.post("/staff/register", staffRegister);
 router.post("/staff/logout", staffLogout);

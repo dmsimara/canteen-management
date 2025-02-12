@@ -247,6 +247,44 @@ export const addPurchase = async (req, res) => {
     }
 }
 
+export const addInventory = async (req, res) => {
+    const { productName, category, quantity, unit, price, dateAdded } = req.body;
+    const { stallId } = req.params; 
+
+    try {
+        if (!productName || !category || !quantity || !unit || !price || !dateAdded || !stallId) {
+            throw new Error("All fields are required, including stallId from URL");
+        }
+
+        const db = await connectDB();
+
+        const product = await db.run(
+            'INSERT INTO inventory (productName, category, quantity, unit, price, dateAdded, stallId) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+            [productName, category, quantity, unit, price, dateAdded, stallId]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Inventory added successfully",
+            inventory: {
+                inventoryId: product.lastID,
+                productName,
+                category,
+                quantity,
+                unit,
+                price,
+                dateAdded,
+                stallId
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 export const addStallA = async (req, res) => {
     const { stallName, category } = req.body;
     const canteenId = 1; 
@@ -384,6 +422,36 @@ export const deleteStall = async (req, res) => {
         });
     }
 }
+
+export const deleteInventory = async (req, res) => {
+    const { inventoryId } = req.params;
+
+    try {
+        const db = await connectDB();
+        
+        const inventory = await db.get('SELECT * FROM inventory WHERE inventoryId =?', [inventoryId]);
+
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                message: "Inventory item not found"
+            });
+        }
+
+        await db.run('DELETE FROM inventory WHERE inventoryId =?', [inventoryId]);
+
+        res.status(200).json({
+            success: true,
+            message: "Inventory item deleted successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while deleting the inventory item",
+            error: error.message
+        });
+    }
+}
  
 export const viewPurchases = async (req, res) => {
     try {
@@ -404,6 +472,28 @@ export const viewPurchases = async (req, res) => {
         });
     }
 };
+
+export const viewInventory = async (req, res) => {
+    const { stallId } = req.params; 
+
+    try {
+        const db = await connectDB();
+
+        const inventories = await db.all('SELECT * FROM inventory WHERE stallId =?', [stallId]);
+
+        res.status(200).json({
+            success: true,
+            message: "Inventory retrieved successfully",
+            inventory: inventories
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the inventory",
+            error: error.message
+        })
+    }
+}
 
 export const viewStallsA = async (req, res) => {
     try {

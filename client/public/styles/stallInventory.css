@@ -172,18 +172,19 @@ ul.sidebar-nav .sidebar-item.active {
     margin-left: 20px;
 }
 
-.card-container {
-    display: flex;
-    gap: 20px;
-    margin-top: 20px;
-    margin-left: 30px;
+.breadcrumb-item a {
+    color: white !important;
+    text-decoration: none;  
 }
 
-.card:hover {
-    opacity: 0.7;
+.breadcrumb-item a:hover {
+    color: lightgray !important;  
 }
 
-.card-title {
-    font-weight: 600;
-    color: var(--gradient1);
+.breadcrumb-item.active {
+    color: var(--violet) !important;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: white !important; 
 }
