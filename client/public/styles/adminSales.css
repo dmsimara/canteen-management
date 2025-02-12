@@ -164,34 +164,16 @@ ul.sidebar-nav .sidebar-item.active {
 
 
 
+.row {
+    margin-bottom: 20px;
+}
+
 .header {
     font-size: 40px;
     font-weight: 700;
     color: white;
-    margin-top: -20px;
+    margin-bottom: -5px;
     margin-left: 20px;
-}
-
-.breadcrumb {
-    margin-left: 20px;
-    margin-top: 10px;
-}
-
-.breadcrumb-item a {
-    color: white !important;
-    text-decoration: none;  
-}
-
-.breadcrumb-item a:hover {
-    color: lightgray !important;  
-}
-
-.breadcrumb-item.active {
-    color: var(--violet) !important;
-}
-
-.breadcrumb-item + .breadcrumb-item::before {
-    color: white !important; 
 }
 
 .search-bar {
@@ -263,36 +245,24 @@ thead th {
     overflow: hidden; 
 }
 
-.delete-btn, .edit-btn {
-    border-radius: 50px;
+.total {
+    font-weight: 600;
+}
+
+.delete-btn {
+    border-radius: 50px;  
     padding: 5px 20px;
     font-size: 14px;
+    background-color: #dc3545; 
     color: white;
     border: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    min-width: 100px; 
-    display: inline-flex;  
-    align-items: center;
-    justify-content: center;
-}
-
-.delete-btn {
-    background-color: #dc3545;
 }
 
 .delete-btn:hover {
-    background-color: #c82333;
+    background-color: #c82333;  
 }
-
-.edit-btn {
-    background: var(--gradient2); 
-}
-
-.edit-btn:hover {
-    background: var(--gradient1);
-}
-
 
 .modal-dialog {
     display: flex;
@@ -351,6 +321,37 @@ thead th {
     outline: none;
 }
 
+.input-group {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    flex-wrap: nowrap;  
+}
+
+.input-group-text {
+    background-color: var(--gradient1);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 45px;   
+}
+
+.input-group .form-control {
+    height: 45px;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.row.mb-3 {
+    margin-bottom: 15px;
+}
+
 .form-select {
     border-radius: 10px;
     border: 1px solid var(--gradient1);
@@ -389,6 +390,3 @@ thead th {
     color: var(--gradient1);
 }
 
-.close-btn {
-    margin-right: 10px;
-}

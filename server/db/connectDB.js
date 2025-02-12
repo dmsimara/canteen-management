@@ -1,16 +1,19 @@
-import { open } from 'sqlite';
-import sqlite3 from 'sqlite3';
+import { open } from "sqlite";
+import sqlite3 from "sqlite3";
 
 export const connectDB = async () => {
+    let db;
     try {
-        const db = await open({
-            filename: 'canteen.db',
-            driver: sqlite3.Database
+        db = await open({
+            filename: "canteen.db",
+            driver: sqlite3.Database,
         });
 
         console.log("Connected to SQLite database");
 
-        await db.run('BEGIN TRANSACTION');
+        await db.run("BEGIN TRANSACTION");
+
+        await db.exec("DROP TABLE IF EXISTS inventory_new;");
 
         await db.exec(`
             CREATE TABLE IF NOT EXISTS users (
@@ -75,27 +78,35 @@ export const connectDB = async () => {
         `);
 
         await db.exec(`
-            CREATE TABLE IF NOT EXISTS inventory (
+            CREATE TABLE inventory_new (
                 inventoryId INTEGER PRIMARY KEY AUTOINCREMENT,
                 productName TEXT NOT NULL,
-                category TEXT NOT NULL,  
                 quantity INTEGER NOT NULL,
-                unit TEXT NOT NULL,      
-                price REAL NOT NULL,   
+                unit TEXT NOT NULL,
                 stallId INTEGER NOT NULL,
                 dateAdded TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, 
                 FOREIGN KEY (stallId) REFERENCES stalls(stallId) ON DELETE CASCADE
             );
         `);
 
-        await db.run('COMMIT');
+        await db.exec(`
+            INSERT INTO inventory_new (inventoryId, productName, quantity, unit, stallId, dateAdded)
+            SELECT inventoryId, productName, quantity, unit, stallId, dateAdded FROM inventory;
+        `);
+
+        await db.exec("DROP TABLE inventory;");
+        await db.exec("ALTER TABLE inventory_new RENAME TO inventory;");
+
+        await db.run("COMMIT");
 
         return db;
     } catch (error) {
         console.error("Database connection error:", error);
 
-        await db.run('ROLLBACK');
-        
+        if (db) {
+            await db.run("ROLLBACK").catch(() => console.error("Failed to rollback transaction"));
+        }
+
         process.exit(1);
     }
 };

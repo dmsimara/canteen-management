@@ -217,15 +217,21 @@ export const staffLogout = async (req, res) => {
 export const addPurchase = async (req, res) => {
     const { productName, price, quantity, MOP, date } = req.body;
 
+    if (!productName || !price || !quantity || !MOP || !date) {
+        return res.status(400).json({
+            success: false,
+            message: "All fields are required"
+        });
+    }
+
+    let db;
     try {
-        if (!productName || !price || !quantity || !MOP || !date) {
-            throw new Error("All fields are required");
-        }
+        db = await connectDB();
 
-        const db = await connectDB();
-
-        const product = await db.run('INSERT INTO products (productName, price, quantity, MOP, date) VALUES (?, ?, ?, ?, ?)', 
-            [productName, price, quantity, MOP, date]);
+        const product = await db.run(
+            "INSERT INTO products (productName, price, quantity, MOP, date) VALUES (?, ?, ?, ?, ?)", 
+            [productName, price, quantity, MOP, date]
+        );
 
         res.status(201).json({
             success: true,
@@ -240,27 +246,38 @@ export const addPurchase = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(400).json({
+        console.error("Error adding purchase:", error);
+        res.status(500).json({
             success: false,
-            message: error.message
+            message: "Failed to add purchase"
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
-}
+};
 
 export const addInventory = async (req, res) => {
-    const { productName, category, quantity, unit, price, dateAdded } = req.body;
+    const { productName, quantity, unit } = req.body;
     const { stallId } = req.params; 
 
-    try {
-        if (!productName || !category || !quantity || !unit || !price || !dateAdded || !stallId) {
-            throw new Error("All fields are required, including stallId from URL");
-        }
+    if (!productName || !quantity || !unit || !stallId) {
+        return res.status(400).json({
+            success: false,
+            message: "All fields are required, including stallId from URL"
+        });
+    }
 
-        const db = await connectDB();
+    let db;
+    try {
+        db = await connectDB();
+
+        const dateAdded = new Date().toISOString().split("T")[0]; 
 
         const product = await db.run(
-            'INSERT INTO inventory (productName, category, quantity, unit, price, dateAdded, stallId) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-            [productName, category, quantity, unit, price, dateAdded, stallId]
+            "INSERT INTO inventory (productName, quantity, unit, dateAdded, stallId) VALUES (?, ?, ?, ?, ?)", 
+            [productName, quantity, unit, dateAdded, stallId]
         );
 
         res.status(201).json({
@@ -269,19 +286,22 @@ export const addInventory = async (req, res) => {
             inventory: {
                 inventoryId: product.lastID,
                 productName,
-                category,
                 quantity,
                 unit,
-                price,
                 dateAdded,
                 stallId
             }
         });
     } catch (error) {
-        res.status(400).json({
+        console.error("Error adding inventory:", error);
+        res.status(500).json({
             success: false,
-            message: error.message
+            message: "Failed to add inventory"
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 };
 
@@ -289,12 +309,13 @@ export const addStallA = async (req, res) => {
     const { stallName, category } = req.body;
     const canteenId = 1; 
 
+    let db;
     try {
         if (!stallName || !category) {
             throw new Error("All fields are required");
         }
 
-        const db = await connectDB();
+        db = await connectDB();
 
         const result = await db.run(
             'INSERT INTO stalls (stallName, category, canteenId) VALUES (?, ?, ?)',
@@ -316,6 +337,10 @@ export const addStallA = async (req, res) => {
             success: false,
             message: error.message
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 };
 
@@ -323,12 +348,13 @@ export const addStallB = async (req, res) => {
     const { stallName, category } = req.body;
     const canteenId = 2;  
 
+    let db;
     try {
         if (!stallName || !category) {
             throw new Error("All fields are required");
         }
 
-        const db = await connectDB();
+        db = await connectDB();
 
         const result = await db.run(
             'INSERT INTO stalls (stallName, category, canteenId) VALUES (?, ?, ?)',
@@ -350,14 +376,19 @@ export const addStallB = async (req, res) => {
             success: false,
             message: error.message
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 };
 
 export const deletePurchase = async (req, res) => {
     const { productId } = req.params;
 
+    let db;
     try {
-        const db = await connectDB();
+        db = await connectDB();
 
         const product = await db.get('SELECT * FROM products WHERE productId = ?', [productId]);
 
@@ -380,14 +411,19 @@ export const deletePurchase = async (req, res) => {
             message: "An error occurred while deleting the purchase",
             error: error.message
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 };
 
 export const deleteStall = async (req, res) => {
     const { stallId } = req.params;
 
+    let db;
     try {
-        const db = await connectDB();
+        db = await connectDB();
 
         const stall = await db.get('SELECT * FROM stalls WHERE stallId = ?', [stallId]);
 
@@ -420,14 +456,19 @@ export const deleteStall = async (req, res) => {
             message: "An error occurred while deleting the stall",
             error: error.message,
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 }
 
 export const deleteInventory = async (req, res) => {
     const { inventoryId } = req.params;
 
+    let db;
     try {
-        const db = await connectDB();
+        db = await connectDB();
         
         const inventory = await db.get('SELECT * FROM inventory WHERE inventoryId =?', [inventoryId]);
 
@@ -450,12 +491,17 @@ export const deleteInventory = async (req, res) => {
             message: "An error occurred while deleting the inventory item",
             error: error.message
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 }
  
 export const viewPurchases = async (req, res) => {
+    let db;
     try {
-        const db = await connectDB();
+        db = await connectDB();
 
         const products = await db.all('SELECT * FROM products');
 
@@ -470,14 +516,19 @@ export const viewPurchases = async (req, res) => {
             message: "An error occurred while retrieving the purchases",
             error: error.message
         });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 };
 
 export const viewInventory = async (req, res) => {
     const { stallId } = req.params; 
 
+    let db;
     try {
-        const db = await connectDB();
+        db = await connectDB();
 
         const inventories = await db.all('SELECT * FROM inventory WHERE stallId =?', [stallId]);
 
@@ -492,6 +543,10 @@ export const viewInventory = async (req, res) => {
             message: "An error occurred while retrieving the inventory",
             error: error.message
         })
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 }
 
@@ -540,24 +595,150 @@ export const viewStallsB = async (req, res) => {
 };
 
 export const searchPurchases = async (req, res, next) => {
+    let db;
     try {
-        const searchTerm = req.query.q?.trim() || '';
+        const searchTerm = req.query.q?.trim() || "";
         console.log("Search Term:", searchTerm);
 
-        const db = await connectDB();
+        db = await connectDB();
 
-        const purchases = await db.all(
-            `SELECT * FROM products 
-            WHERE productName LIKE ? 
-            OR MOP LIKE ? 
-            OR date LIKE ?`,
-            [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]
-        );
+        let purchases;
 
-        return res.json({ success: true, purchases });   
+        if (searchTerm) {
+            purchases = await db.all(
+                `SELECT * FROM products 
+                 WHERE LOWER(productName) LIKE LOWER(?) 
+                 OR LOWER(MOP) LIKE LOWER(?) 
+                 OR date LIKE ?`,
+                [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`]
+            );
+        } else {
+            purchases = await db.all(`SELECT * FROM products`);
+        }
+
+        return res.json({ success: true, purchases });
 
     } catch (error) {
-        console.error('Error executing query:', error);
-        return res.status(500).json({ success: false, message: 'Database query failed' });
+        console.error("Error executing search query:", error);
+        return res.status(500).json({ success: false, message: "Database query failed" });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
+export const searchInventory = async (req, res, next) => {
+    let db; 
+
+    try {
+        const searchTerm = req.query.q?.trim() || "";
+        const stallId = req.query.stallId;
+
+        console.log("Search Term:", searchTerm);
+        console.log("Stall ID:", stallId);
+
+        if (!stallId) {
+            return res.status(400).json({ success: false, message: "Stall ID is required in query parameters" });
+        }
+
+        db = await connectDB();
+
+        const inventories = await db.all(
+            `SELECT * FROM inventory 
+            WHERE stallId = ? 
+            AND (LOWER(productName) LIKE LOWER(?) 
+            OR LOWER(unit) LIKE LOWER(?))`,
+            [stallId, `%${searchTerm}%`, `%${searchTerm}%`]
+        );
+
+        return res.json({ success: true, inventories });
+    } catch (error) {
+        console.error("Error executing inventory query:", error);
+        return res.status(500).json({ success: false, message: "Database query failed" });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
+export const updateInventory = async (req, res) => {
+    const { inventoryId } = req.params;
+    const { productName, quantity, unit } = req.body;
+    const dateAdded = new Date().toISOString().split("T")[0]; 
+
+    let db;
+    try {
+        if (!inventoryId || !productName || !quantity || !unit) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields (inventoryId, productName, quantity, unit) are required."
+            });
+        }
+
+        db = await connectDB();
+
+        const result = await db.run(
+            `UPDATE inventory 
+             SET productName = ?, quantity = ?, unit = ?, dateAdded = ? 
+             WHERE inventoryId = ?`,
+            [productName, quantity, unit, dateAdded, inventoryId]
+        );
+
+        if (result.changes === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Inventory not found or no changes made."
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Inventory updated successfully",
+            updatedInventory: {
+                inventoryId,
+                productName,
+                quantity,
+                unit,
+                dateAdded
+            }
+        });
+    } catch (error) {
+        console.error("Error updating inventory:", error);
+        res.status(500).json({
+            success: false,
+            message: "Database update failed"
+        });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
+    }
+};
+
+export const getInventory = async (req, res) => {
+    const { inventoryId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+        const inventory = await db.get(
+            "SELECT * FROM inventory WHERE inventoryId = ?",
+            [inventoryId]
+        );
+
+        if (!inventory) {
+            return res.status(404).json({ success: false, message: "Inventory not found" });
+        }
+
+        res.json({ success: true, inventory });
+    } catch (error) {
+        console.error("Error fetching inventory:", error);
+        res.status(500).json({ success: false, message: "Database query failed" });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
     }
 };

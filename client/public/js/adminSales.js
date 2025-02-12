@@ -75,28 +75,30 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("inventoryForm");  
+    const form = document.getElementById("purchaseForm");  
     const submitButton = form.querySelector("button[type='submit']");
-
-    const stallId = window.location.pathname.split("/").pop(); 
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const productName = document.getElementById("productName").value.trim();
+        const price = parseFloat(document.getElementById("price").value).toFixed(2);  
         const quantity = parseInt(document.getElementById("quantity").value, 10);
-        const unit = document.getElementById("unit").value;
+        const MOP = document.getElementById("MOP").value;
+        const date = document.getElementById("date").value;
 
         submitButton.disabled = true;
 
         try {
-            const response = await fetch(`/api/auth/admin/inventory/stall/${stallId}`, {
+            const response = await fetch("/api/auth/admin/add/purchase", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     productName,
+                    price: parseFloat(price),  
                     quantity,
-                    unit,
+                    MOP,
+                    date,
                 }),
             });
 
@@ -106,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert(data.message);
                 window.location.reload();
             } else {
-                alert(data.message || "Failed to add record. Please try again.");
+                alert(data.message || "Failed to add purchase. Please try again.");
             }
         } catch (error) {
             console.error("Error:", error);
@@ -117,49 +119,40 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-function getStallIdFromPath() {
-    const pathSegments = window.location.pathname.split('/');  
-    return pathSegments[pathSegments.length - 1];  
-}
-
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.querySelector('#search');
     const resultsBody = document.querySelector('#results');
     const noPurchasesRow = document.createElement('tr'); 
 
-    noPurchasesRow.innerHTML = `<td colspan="7" class="text-center">No inventories found</td>`;
+    noPurchasesRow.innerHTML = `<td colspan="7" class="text-center">No purchases found</td>`;
     noPurchasesRow.id = "no-purchases";
     noPurchasesRow.style.display = "none"; 
 
     resultsBody.appendChild(noPurchasesRow);
 
     async function loadData(query = '') {
-        const stallId = getStallIdFromPath(); 
-    
-        if (!stallId || isNaN(stallId)) { 
-            console.error("❌ Error: stallId is missing or invalid in the URL.");
-            return;
-        }
-    
         try {
-            const response = await fetch(`/api/auth/admin/search/inventory?q=${encodeURIComponent(query)}&stallId=${stallId}`);  // ✅ Include stallId
+            const response = await fetch(`/api/auth/admin/search?q=${encodeURIComponent(query)}`);
             const data = await response.json();
-    
+
             resultsBody.innerHTML = ''; 
-    
-            if (data.success && data.inventories.length > 0) {
+
+            if (data.success && data.purchases.length > 0) {
                 noPurchasesRow.style.display = "none"; 
-    
-                data.inventories.forEach(inventory => {
+
+                data.purchases.forEach(purchase => {
+                    const total = (purchase.price * purchase.quantity).toFixed(2);  
+
                     const row = `
-                        <tr data-id="${inventory.inventoryId}">
-                            <td>${inventory.dateAdded}</td>
-                            <td>${inventory.productName}</td>
-                            <td>${inventory.quantity}</td>
-                            <td>${inventory.unit}</td>
+                        <tr data-id="${purchase.productId}">
+                            <td>${purchase.productName}</td>
+                            <td>₱${purchase.price.toFixed(2)}</td>
+                            <td>${purchase.quantity}</td>
+                            <td>${purchase.MOP}</td>
+                            <td>${purchase.date}</td>
+                            <td class="total text-end">₱${total}</td>
                             <td class="text-end">
-                                <button class="btn btn-warning edit-btn" data-id="${inventory.inventoryId}">Edit</button>
-                                <button class="btn btn-danger delete-btn" data-id="${inventory.inventoryId}">Delete</button>
+                                <button class="btn btn-danger delete-btn" data-id="${purchase.productId}">Delete</button>
                             </td>
                         </tr>
                     `;
@@ -173,13 +166,12 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error fetching search results:', error);
         }
     }
-    
 
-    async function deletePurchase(inventoryId) {
-        if (!confirm("Are you sure you want to delete this record?")) return;
+    async function deletePurchase(productId) {
+        if (!confirm("Are you sure you want to delete this purchase?")) return;
 
         try {
-            const response = await fetch(`/api/auth/admin/stall/inventory/${inventoryId}`, {
+            const response = await fetch(`/api/auth/admin/purchases/${productId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" }
             });
@@ -187,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (response.ok) {
-                document.querySelector(`tr[data-id="${inventoryId}"]`)?.remove();
+                document.querySelector(`tr[data-id="${productId}"]`)?.remove();
 
                 if (resultsBody.querySelectorAll("tr[data-id]").length === 0) {
                     noPurchasesRow.style.display = "table-row";
@@ -197,17 +189,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     }, 50);  
                 }
             } else {
-                alert(data.message || "Failed to delete record");
+                alert(data.message || "Failed to delete purchase");
             }
         } catch (error) {
-            console.error("Error deleting record:", error);
+            console.error("Error deleting purchase:", error);
         }
     }
 
     resultsBody.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-btn")) {
-            const inventoryId = event.target.getAttribute("data-id");
-            deletePurchase(inventoryId);
+            const productId = event.target.getAttribute("data-id");
+            deletePurchase(productId);
         }
     });
 
@@ -217,76 +209,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     loadData();
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-    const editModal = new bootstrap.Modal(document.querySelector("#editModal"));
-    const editForm = document.querySelector("#editForm");
-    const resultsBody = document.querySelector("#results");
-
-    if (!editModal || !editForm || !resultsBody) {
-        console.error("Modal or form elements not found.");
-        return;
-    }
-
-    resultsBody.addEventListener("click", async (event) => {
-        if (event.target.classList.contains("edit-btn")) {
-            const inventoryId = event.target.getAttribute("data-id");
-            if (!inventoryId) return;
-
-            try {
-                const response = await fetch(`/api/auth/admin/inventory/${inventoryId}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    document.querySelector("#editInventoryId").value = inventoryId;
-                    document.querySelector("#editProductName").value = data.inventory.productName;
-                    document.querySelector("#editQuantity").value = data.inventory.quantity;
-                    document.querySelector("#editUnit").value = data.inventory.unit;
-
-                    editModal.show(); 
-                } else {
-                    alert("Error: Inventory data not found.");
-                }
-            } catch (error) {
-                console.error("Error fetching inventory:", error);
-                alert("Failed to load inventory details.");
-            }
-        }
-    });
-
-    editForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        const inventoryId = document.querySelector("#editInventoryId").value;
-        const productName = document.querySelector("#editProductName").value.trim();
-        const quantity = document.querySelector("#editQuantity").value.trim();
-        const unit = document.querySelector("#editUnit").value.trim();
-
-        if (!productName || !quantity || !unit) {
-            alert("Please fill in all fields.");
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/auth/admin/inventory/update/${inventoryId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productName, quantity, unit })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                alert("Inventory updated successfully!");
-                editModal.hide(); 
-                location.reload(); 
-            } else {
-                alert(result.message || "Failed to update inventory.");
-            }
-        } catch (error) {
-            console.error("Error updating inventory:", error);
-            alert("An error occurred while updating.");
-        }
-    });
 });

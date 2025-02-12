@@ -28,6 +28,12 @@
                     <span>Inventory</span>
                 </a>
             </li>
+            <li id="sales" class="sidebar-item">
+                <a href="/admin/sales" class="sidebar-link">
+                    <i class="material-icons">request_quote</i>
+                    <span>Sales</span>
+                </a>
+            </li>
             <li id="schedule" class="sidebar-item">
                 <a href="/admin/schedule" class="sidebar-link">
                     <i class="material-icons">event</i>
@@ -38,12 +44,6 @@
                 <a href="/admin/menu" class="sidebar-link">
                     <i class="material-icons">restaurant</i>
                     <span>Menu</span>
-                </a>
-            </li>
-            <li id="staff" class="sidebar-item">
-                <a href="/admin/staff" class="sidebar-link">
-                    <i class="material-icons">groups</i>
-                    <span>Staff</span>
                 </a>
             </li>
         </ul>
@@ -86,7 +86,7 @@
                         </form>
                         <a href="#" data-bs-toggle="modal" data-bs-target="#addInventoryModal"
                             class="btn btn-light btn-sm hover-orange">
-                            + Add Inventory
+                            + Add Record
                         </a>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/admin/inventory">Canteens</a></li>
-                        <li class="breadcrumb-item"><a href="/admin/inventory">{{canteenName}}</a></li>
+                        <li class="breadcrumb-item"><a href="{{canteenPath}}">{{canteenName}}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{stallName}}</li>
                     </ol>
                 </nav>
@@ -106,8 +106,8 @@
                             <tr>
                                 <th scope="col">Date</th>
                                 <th scope="col">Item</th>
-                                <th scope="col">Price</th>
                                 <th scope="col">Quantity</th>
+                                <th scope="col">Unit</th>
                                 <th scope="col" class="text-end">Action</th>
                             </tr>
                         </thead>
@@ -120,6 +120,79 @@
                 </div>
             </div>
         </main>
+
+        <div class="modal fade" id="addInventoryModal" tabindex="-1" aria-labelledby="addInventoryModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <form action="/admin/inventory/stall/{{stallId}}" method="POST" id="inventoryForm"
+                            style="width: 80%;">
+                            <div class="mb-6">
+                                <label for="productName" class="form-label">Product Name</label>
+                                <input type="text" class="form-control" id="productName" name="productName" required>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="quantity" class="form-label">Quantity</label>
+                                    <input type="text" class="form-control" id="quantity" name="quantity" required>
+                                </div>
+                                <div class="col">
+                                    <label for="unit" class="form-label">Unit</label>
+                                    <select class="form-select" id="unit" name="unit" required>
+                                        <option selected disabled value=""></option>
+                                        <option value="pieces">Pieces</option>
+                                        <option value="kilogram">Kilogram</option>
+                                        <option value="gram">Gram</option>
+                                        <option value="pack">Pack</option>
+                                        <option value="box">Box</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="button-container">
+                                <button type="submit" class="btn btn-primary">Add Record</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Inventory Modal -->
+        <div id="editModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <form id="editForm">
+                            <input type="hidden" id="editInventoryId">
+
+                            <div class="mb-3">
+                                <label for="editProductName" class="form-label">Product Name:</label>
+                                <input type="text" id="editProductName" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="editQuantity" class="form-label">Quantity:</label>
+                                <input type="number" id="editQuantity" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="editUnit" class="form-label">Unit:</label>
+                                <input type="text" id="editUnit" class="form-control" required>
+                            </div>
+
+                            <div class="button-container">
+                                <button type="button" class="btn btn-secondary close-btn"
+                                    data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 

@@ -77,17 +77,22 @@ app.get("/admin/inventory/stall/:stallId", async (req, res) => {
         }
 
         let canteenName = "Unknown Canteen";
+        let canteenPath = "#"; 
+
         if (stall.canteenId === 1) {
             canteenName = "Main Canteen";
+            canteenPath = "/admin/inventory/canteen/main";
         } else if (stall.canteenId === 2) {
             canteenName = "Secondary Canteen";
+            canteenPath = "/admin/inventory/canteen/secondary";
         }
 
         res.render("stallInventory", {
             title: "Scope",
             styles: ["stallInventory"],
             stallName: stall.stallName,
-            canteenName: canteenName
+            canteenName: canteenName,
+            canteenPath: canteenPath
         });
     } catch (error) {
         console.error(error);
@@ -95,6 +100,9 @@ app.get("/admin/inventory/stall/:stallId", async (req, res) => {
     }
 });
 
+app.get("/admin/sales", (req, res) => {
+    res.render("adminSales", { title: "Scope", styles: ["adminSales"] });
+});
 
 app.get("/admin/schedule", (req, res) => {
     res.render("adminSchedule", { title: "Scope", styles: ["adminSchedule"] });
