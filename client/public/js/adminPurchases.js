@@ -134,15 +134,17 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const response = await fetch(`/api/auth/admin/search?q=${encodeURIComponent(query)}`);
             const data = await response.json();
-
+    
             resultsBody.innerHTML = ''; 
-
+    
             if (data.success && data.purchases.length > 0) {
                 noPurchasesRow.style.display = "none"; 
-
+    
+                data.purchases.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
                 data.purchases.forEach(purchase => {
                     const total = (purchase.price * purchase.quantity).toFixed(2);  
-
+    
                     const row = `
                         <tr data-id="${purchase.productId}">
                             <td>${purchase.productName}</td>

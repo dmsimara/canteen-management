@@ -89,6 +89,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         resultsTable.innerHTML = "";  
 
+        data.sales.sort((a, b) => new Date(b.salesDate) - new Date(a.salesDate));
+
         data.sales.forEach((sale) => {
             const row = document.createElement("tr");
 
@@ -112,6 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         noPurchasesRow.style.display = "table-row";  
     }
 });
+
 
 document.getElementById("results").addEventListener("click", async (event) => {
     if (event.target.classList.contains("delete-btn")) {
@@ -138,7 +141,6 @@ document.getElementById("results").addEventListener("click", async (event) => {
         }
     }
 });
-
 
 document.addEventListener("DOMContentLoaded", () => {
     const canteenSelect = document.getElementById("canteenId");
@@ -206,3 +208,201 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+async function fetchStallsForEdit(canteenId, selectedStallId) {
+    const stallSelect = document.getElementById("editStallId");
+
+    if (!canteenId) {
+        stallSelect.innerHTML = `<option selected disabled value="">Select a stall</option>`;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/auth/admin/view/stalls?canteenId=${canteenId}`);
+        const data = await response.json();
+
+        if (!data.success || !data.stalls.length) {
+            stallSelect.innerHTML = `<option selected disabled value="">No stalls available</option>`;
+            return;
+        }
+
+        stallSelect.innerHTML = `<option selected disabled value="">Select a stall</option>`;
+        data.stalls.forEach(stall => {
+            const option = document.createElement("option");
+            option.value = stall.stallId;
+            option.textContent = stall.stallName;
+            if (stall.stallId == selectedStallId) {
+                option.selected = true; 
+            }
+            stallSelect.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error("Error fetching stalls:", error);
+        stallSelect.innerHTML = `<option selected disabled value="">Error loading stalls</option>`;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const editModal = new bootstrap.Modal(document.querySelector("#editModal"));
+    const editForm = document.querySelector("#editForm");
+    const resultsBody = document.querySelector("#results");
+
+    if (!editModal || !editForm || !resultsBody) {
+        console.error("Modal or form elements not found.");
+        return;
+    }
+
+    resultsBody.addEventListener("click", async (event) => {
+        if (event.target.classList.contains("edit-btn")) {
+            const reportId = event.target.getAttribute("data-id");
+            if (!reportId) return;
+
+            try {
+                const response = await fetch(`/api/auth/admin/sales/edit/${reportId}`);
+                const data = await response.json();
+
+                console.log("API Response:", data); 
+
+                if (data.success && data.sale) {
+                    document.querySelector("#editReportId").value = reportId;
+                    document.querySelector("#editSalesDate").value = data.sale.salesDate || "";
+                    document.querySelector("#editCost").value = data.sale.cost || "";
+                    document.querySelector("#editCash").value = data.sale.cash || "";
+                    document.querySelector("#editCanteenId").value = data.sale.canteenId || "";
+
+                    await fetchStallsForEdit(data.sale.canteenId, data.sale.stallId);
+
+                    editModal.show();
+                } else {
+                    alert("Error: Sales record not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching sales data:", error);
+                alert("Failed to load sales details.");
+            }
+        }
+    });
+
+    editForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const reportId = document.querySelector("#editReportId").value;
+        const salesDate = document.querySelector("#editSalesDate").value;
+        const cost = document.querySelector("#editCost").value.trim();
+        const cash = document.querySelector("#editCash").value.trim();
+        const canteenId = document.querySelector("#editCanteenId").value;
+        const stallId = document.querySelector("#editStallId").value;
+
+        if (!salesDate || !cost || !cash || !canteenId || !stallId) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/auth/admin/sales/update/${reportId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ salesDate, cost, cash, canteenId, stallId })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert("Sales record updated successfully!");
+                editModal.hide();
+                location.reload();
+            } else {
+                alert(result.message || "Failed to update sales record.");
+            }
+        } catch (error) {
+            console.error("Error updating sales record:", error);
+            alert("An error occurred while updating.");
+        }
+    });
+
+    document.querySelector("#editCanteenId").addEventListener("change", async function () {
+        const selectedCanteenId = this.value;
+        await fetchStallsForEdit(selectedCanteenId, null); 
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("FilterSales.js loaded!"); 
+
+    const form = document.getElementById("sales-filter-form");
+    const resultsTable = document.getElementById("results");
+    const noPurchasesRow = document.getElementById("no-purchases");
+    const resetButton = document.getElementById("reset-filter"); 
+
+    if (!form) {
+        console.error("Form not found!");
+        return;
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const startDate = document.getElementById("start-date").value;
+        const endDate = document.getElementById("end-date").value;
+
+        try {
+            const response = await fetch("/api/auth/admin/filter/sales", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ startDate, endDate }),
+            });
+
+            const data = await response.json();
+            console.log("Filtered Sales Response:", data);  
+
+            resultsTable.innerHTML = "";  
+
+            if (data.noSalesOverall) {
+                noPurchasesRow.style.display = "table-row";
+                noPurchasesRow.innerHTML = `
+                    <td colspan="7" class="text-center fw-bold text-secondary">
+                        No Records Yet
+                    </td>
+                `;
+            } else if (data.noSales) {
+                noPurchasesRow.style.display = "table-row";
+                noPurchasesRow.innerHTML = `
+                    <td colspan="7" class="text-center fw-bold text-danger">
+                        No records found for this date range.
+                    </td>
+                `;
+            } else {
+                noPurchasesRow.style.display = "none";
+
+                data.sales.forEach(sale => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${sale.canteenId}</td>
+                        <td>${sale.stallId}</td>
+                        <td>${sale.salesDate}</td>
+                        <td>₱${sale.cost.toFixed(2)}</td>
+                        <td>₱${sale.cash.toFixed(2)}</td>
+                        <td>₱${sale.profit.toFixed(2)}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-warning edit-btn" data-id="${sale.reportId}">Edit</button>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${sale.reportId}">Delete</button>
+                        </td>
+                    `;
+                    resultsTable.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching filtered sales:", error);
+        }
+    });
+
+    if (resetButton) {
+        resetButton.addEventListener("click", () => {
+            location.reload(); 
+        });
+    } else {
+        console.error("Reset button not found!");
+    }
+});
+

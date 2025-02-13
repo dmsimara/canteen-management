@@ -142,13 +142,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     
         try {
-            const response = await fetch(`/api/auth/admin/search/inventory?q=${encodeURIComponent(query)}&stallId=${stallId}`);  // ✅ Include stallId
+            const response = await fetch(`/api/auth/admin/search/inventory?q=${encodeURIComponent(query)}&stallId=${stallId}`);
             const data = await response.json();
     
             resultsBody.innerHTML = ''; 
     
             if (data.success && data.inventories.length > 0) {
                 noPurchasesRow.style.display = "none"; 
+    
+                data.inventories.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
     
                 data.inventories.forEach(inventory => {
                     const row = `
@@ -172,8 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error fetching search results:', error);
         }
-    }
-    
+    }    
 
     async function deletePurchase(inventoryId) {
         if (!confirm("Are you sure you want to delete this record?")) return;

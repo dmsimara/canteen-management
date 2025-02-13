@@ -921,25 +921,40 @@ export const getSales = async (req, res) => {
 
 export const filterSales = async (req, res) => {
     const { startDate, endDate } = req.body;
+    console.log("Received filter request:", { startDate, endDate });
 
+    let db;
     try {
-        const db = await connectDB();
+        db = await connectDB(); 
 
-        let query = `SELECT * FROM sales`;
+        let query = "SELECT * FROM sales";
         let params = [];
 
         if (startDate && endDate) {
-            query += ` WHERE salesDate BETWEEN ? AND ?`;
-            params.push(startDate, endDate);
+            query += " WHERE DATE(salesDate) >= DATE(?) AND DATE(salesDate) <= DATE(?)";
+            params = [startDate, endDate];
         }
 
+        console.log("🛠 SQL Query:", query, params);
         const sales = await db.all(query, params);
-        await db.close();
 
-        res.render("admin/sales", { sales, lastStartDate: startDate, lastEndDate: endDate });
+        console.log("Filtered sales:", sales);
+
+        res.json({
+            sales,
+            noSales: sales.length === 0, 
+            noSalesOverall: sales.length === 0 && !startDate && !endDate,
+        });
+
     } catch (error) {
         console.error("Database error:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(500).json({ error: "Internal Server Error" });
+
+    } finally {
+        if (db) {
+            await db.close(); 
+            console.log("Database connection closed");
+        }
     }
 };
 

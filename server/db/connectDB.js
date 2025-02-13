@@ -11,6 +11,8 @@ export const connectDB = async () => {
 
         console.log("Connected to SQLite database");
 
+        await db.exec("PRAGMA journal_mode=WAL;");
+
         await db.run("BEGIN TRANSACTION");
 
         await db.exec("DROP TABLE IF EXISTS inventory_new;");

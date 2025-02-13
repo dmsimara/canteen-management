@@ -73,10 +73,16 @@
                     <div class="row align-items-center">
                         <div class="col-6">
                             <h1 class="header">Sales</h1>
+
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#exportModal"
+                            class="btn btn-light btn-sm export-btn">
+                            Export
+                        </a>
                         </div>
+
                         <div class="col-6 d-flex justify-content-end gap-2">
-                            <form class="d-flex" role="search" method="POST" action="/api/auth/admin/filter/sales"
-                                novalidate>
+                            <form id="sales-filter-form" class="d-flex" role="search" method="POST"
+                                action="/api/auth/admin/filter/sales">
                                 <div class="search-bar">
                                     <label for="start-date">From:</label>
                                     <input class="form-control form-control-sm me-2 search" type="date" id="start-date"
@@ -87,8 +93,11 @@
                                         name="endDate" value="{{lastEndDate}}" required>
 
                                     <button class="btn btn-primary btn-sm" type="submit">Filter</button>
+                                    <button type="button" id="reset-filter"
+                                        class="btn btn-secondary btn-sm reset-btn">Reset</button>
                                 </div>
                             </form>
+
 
                             <a href="#" data-bs-toggle="modal" data-bs-target="#addRecordsModal"
                                 class="btn btn-light btn-sm hover-orange">
@@ -112,7 +121,7 @@
                             </thead>
                             <tbody id="results">
                                 <tr id="no-purchases" style="display: none;">
-                                    <td colspan="7" class="text-center">No Records Yet</td>
+                                    <td colspan="7" class="text-center fw-bold text-secondary">No Records Yet</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -135,11 +144,13 @@
                             <div class="row mb-3">
                                 <div class="col">
                                     <label for="cost" class="form-label">Cost</label>
-                                    <input type="number" step="0.01" class="form-control" id="cost" name="cost" required>
+                                    <input type="number" step="0.01" class="form-control" id="cost" name="cost"
+                                        required>
                                 </div>
                                 <div class="col">
                                     <label for="cash" class="form-label">Cash Collected</label>
-                                    <input type="number" step="0.01" class="form-control" id="cash" name="cash" required>
+                                    <input type="number" step="0.01" class="form-control" id="cash" name="cash"
+                                        required>
                                 </div>
                             </div>
 
@@ -166,6 +177,71 @@
                             </div>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Sale Modal -->
+        <div id="editModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <form id="editForm">
+                            <input type="hidden" id="editReportId" name="reportId">
+
+                            <div class="mb-3">
+                                <label for="editSalesDate" class="form-label">Sales Date:</label>
+                                <input type="date" id="editSalesDate" name="salesDate" class="form-control" required>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="editCost" class="form-label">Cost:</label>
+                                    <input type="number" step="0.01" id="editCost" name="cost" class="form-control"
+                                        required>
+                                </div>
+                                <div class="col">
+                                    <label for="editCash" class="form-label">Cash Collected:</label>
+                                    <input type="number" step="0.01" id="editCash" name="cash" class="form-control"
+                                        required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="editCanteenId" class="form-label">Canteen Name:</label>
+                                    <select id="editCanteenId" name="canteenId" class="form-select" required>
+                                        <option selected disabled value="">Select Canteen</option>
+                                        <option value="1">Main Canteen</option>
+                                        <option value="2">Secondary Canteen</option>
+                                    </select>
+                                </div>
+
+                                <div class="col">
+                                    <label for="editStallId" class="form-label">Stall Name:</label>
+                                    <select id="editStallId" name="stallId" class="form-select" required>
+                                        <option selected disabled value="">Select Stall</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="button-container">
+                                <button type="button" class="btn btn-secondary close-btn"
+                                    data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{!-- Export Modal --}}
+        <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body"></div>
                 </div>
             </div>
         </div>

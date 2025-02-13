@@ -179,7 +179,7 @@ ul.sidebar-nav .sidebar-item.active {
 .search-bar {
     display: flex;
     align-items: center;
-    gap: 10px;  
+    gap: 2px;
 }
 
 .search-bar label {
@@ -212,6 +212,25 @@ ul.sidebar-nav .sidebar-item.active {
 
 .btn.hover-orange:hover {
     opacity: 0.8;
+}
+
+#sales-filter-form {
+    margin-left: -10px;
+}
+
+#sales-filter-form .btn {
+    margin-right: 5px; 
+}
+
+#sales-filter-form .btn-primary {
+    padding: 5px 15px; 
+    min-width: auto; 
+    font-size: 12px; 
+    border-radius: 5px;  
+}
+
+.col-6.d-flex {
+    gap: 5px !important; 
 }
 
 thead th {
@@ -387,7 +406,7 @@ thead th {
     min-width: 120px; 
     background: var(--gradient1);
     border: 1px solid var(--gradient1);
-    padding: 8px 18px;
+    padding: 5px 18px;
     border-radius: 10px;
     font-size: 14px;
     font-weight: bold;
@@ -400,3 +419,40 @@ thead th {
     color: var(--gradient1);
 }
 
+.close-btn {
+    margin-right: 10px;
+}
+
+.reset-btn {
+    background-color: #6c757d; 
+    color: white;
+    border: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.reset-btn:hover {
+    background-color: #545b62;
+}
+
+.col-6:first-child {
+    display: flex;
+    align-items: center;
+    gap: 20px;  
+}
+
+.col-6:first-child .header {
+    margin-bottom: 0;  
+}
+
+.col-6:first-child .btn {
+    height: 32px;  
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.export-btn {
+    background: var(--gradient3);
+    border: none;
+    color: white;
+    font-weight: bold;
+}
