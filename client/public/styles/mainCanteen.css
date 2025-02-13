@@ -407,3 +407,9 @@ ul.sidebar-nav .sidebar-item.active {
     border: 1px solid var(--gradient1);
     color: var(--gradient1);
 }
+
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}

@@ -1,6 +1,10 @@
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndCookies.js';
 import { connectDB } from '../db/connectDB.js';
+import { Parser } from "json2csv";
 import bcryptjs from 'bcryptjs';
+import PDFDocument from "pdfkit";
+import fs from "fs";
+import path from "path";
 
 export const adminRegister = async (req, res) => {
     const { adminEmail, adminFirstName, adminLastName, adminPassword, confirmPassword } = req.body;
@@ -975,5 +979,118 @@ export const viewStalls = async (req, res) => {
         res.status(500).json({ success: false, message: "Error retrieving stalls", error: error.message });
     } finally {
         if (db) await db.close();
+    }
+};
+
+export const exportSalesCSV = async (req, res) => {
+    try {
+        const { period } = req.params; 
+        const db = await connectDB();
+        
+        let query = `
+            SELECT stallId, salesDate, SUM(profit) AS totalProfit, SUM(cost) AS totalCost, SUM(cash) AS totalCash
+            FROM sales
+        `;
+
+        if (period === "weekly") {
+            query += " WHERE salesDate >= date('now', '-7 days')";
+        } else if (period === "monthly") {
+            query += " WHERE salesDate >= date('now', '-30 days')";
+        } else {
+            return res.status(400).json({ error: "Invalid period. Use 'weekly' or 'monthly'." });
+        }
+
+        query += " GROUP BY stallId, salesDate ORDER BY salesDate DESC";
+
+        const salesData = await db.all(query);
+
+        let csv;
+        if (salesData.length === 0) {
+            csv = "No sales data available for the selected period.";
+        } else {
+            const fields = ["stallId", "salesDate", "totalProfit", "totalCost", "totalCash"];
+            const json2csvParser = new Parser({ fields });
+            csv = json2csvParser.parse(salesData);
+        }
+
+        res.header("Content-Type", "text/csv");
+        res.attachment(`sales_${period}.csv`);
+        res.send(csv);
+    } catch (error) {
+        console.error("Error exporting sales data:", error);
+        res.status(500).json({ error: "Error exporting sales data" });
+    }
+};
+
+export const exportSalesPDF = async (req, res) => {
+    try {
+        const { period } = req.params; 
+        const db = await connectDB();
+
+        let query = `
+            SELECT stallId, salesDate, SUM(profit) AS totalProfit, SUM(cost) AS totalCost, SUM(cash) AS totalCash
+            FROM sales
+        `;
+
+        if (period === "weekly") {
+            query += " WHERE salesDate >= date('now', '-7 days')";
+        } else if (period === "monthly") {
+            query += " WHERE salesDate >= date('now', '-30 days')";
+        } else {
+            return res.status(400).json({ error: "Invalid period. Use 'weekly' or 'monthly'." });
+        }
+
+        query += " GROUP BY stallId, salesDate ORDER BY salesDate DESC";
+
+        const salesData = await db.all(query);
+
+        const exportDir = path.join(process.cwd(), "exports");
+        if (!fs.existsSync(exportDir)) {
+            fs.mkdirSync(exportDir, { recursive: true });
+        }
+
+        const fileName = `sales_${period}.pdf`;
+        const filePath = path.join(exportDir, fileName);
+        const doc = new PDFDocument();
+        const stream = fs.createWriteStream(filePath);
+        doc.pipe(stream);
+
+        doc.fontSize(18).text(`Sales Report (${period})`, { align: "center" }).moveDown(1);
+
+        if (salesData.length === 0) {
+            doc.fontSize(14).text("No sales data available for the selected period.", { align: "center" }).moveDown(2);
+        } else {
+            doc.fontSize(12).text("Stall ID", 50, 100, { bold: true });
+            doc.text("Sales Date", 150, 100, { bold: true });
+            doc.text("Total Profit", 250, 100, { bold: true });
+            doc.text("Total Cost", 350, 100, { bold: true });
+            doc.text("Total Cash", 450, 100, { bold: true });
+
+            let y = 120;
+            salesData.forEach((sale) => {
+                doc.text(sale.stallId, 50, y);
+                doc.text(sale.salesDate, 150, y);
+                doc.text(`₱${sale.totalProfit.toFixed(2)}`, 250, y);
+                doc.text(`₱${sale.totalCost.toFixed(2)}`, 350, y);
+                doc.text(`₱${sale.totalCash.toFixed(2)}`, 450, y);
+                y += 20;
+            });
+        }
+
+        doc.end();
+
+        stream.on("finish", () => {
+            res.download(filePath, fileName, (err) => {
+                if (err) {
+                    console.error("Error sending PDF:", err);
+                    res.status(500).json({ error: "Error exporting sales data to PDF" });
+                } else {
+                    fs.unlinkSync(filePath); 
+                }
+            });
+        });
+    } catch (error) {
+        console.error("Error exporting sales data to PDF:", error);
+        res.status(500).json({ error: "Error exporting sales data to PDF" });
     }
 };

@@ -1,5 +1,5 @@
 import express from 'express';
-import { addInventory, addPurchase, addSales, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deletePurchase, deleteSales, deleteStall, filterSales, getInventory, getSales, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, updateSales, viewInventory, viewPurchases, viewSales, viewStalls, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
+import { addInventory, addPurchase, addSales, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deletePurchase, deleteSales, deleteStall, exportSalesCSV, exportSalesPDF, filterSales, getInventory, getSales, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, updateSales, viewInventory, viewPurchases, viewSales, viewStalls, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
@@ -28,7 +28,8 @@ router.patch("/admin/sales/update/:reportId", updateSales);
 router.get("/admin/sales/edit/:reportId", getSales);
 router.post("/admin/filter/sales", filterSales);
 router.get("/admin/view/stalls", viewStalls);
-
+router.get("/admin/export/sales/csv/:period", exportSalesCSV);
+router.get("/admin/export/sales/pdf/:period", exportSalesPDF);
 
 router.post("/staff/register", staffRegister);
 router.post("/staff/logout", staffLogout);

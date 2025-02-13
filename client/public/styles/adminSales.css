@@ -208,6 +208,7 @@ ul.sidebar-nav .sidebar-item.active {
     border: 1px solid white;
     color: white;
     transition: all 0.3s ease-in-out;
+    font-weight: bold;
 }
 
 .btn.hover-orange:hover {
@@ -455,4 +456,10 @@ thead th {
     border: none;
     color: white;
     font-weight: bold;
+}
+
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }

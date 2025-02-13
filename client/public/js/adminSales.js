@@ -406,3 +406,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+    const exportPeriod = document.getElementById("export-period");
+    const exportCsvBtn = document.getElementById("export-csv");
+    const exportPdfBtn = document.getElementById("export-pdf");
+
+    function updateExportLinks() {
+        const selectedPeriod = exportPeriod.value;
+        exportCsvBtn.setAttribute("onclick", `window.location.href='/api/auth/admin/export/sales/csv/${selectedPeriod}'`);
+        exportPdfBtn.setAttribute("onclick", `window.location.href='/api/auth/admin/export/sales/pdf/${selectedPeriod}'`);
+    }
+
+    exportPeriod.addEventListener("change", updateExportLinks);
+
+    updateExportLinks();
+});
