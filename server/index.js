@@ -29,6 +29,8 @@ app.set("view engine", "hbs");
 app.set("views", path.join(__dirname, "../client/views")); 
 console.log("Views Directory: ", path.join(__dirname, "../client/views"));
 app.use(express.static(path.join(__dirname, "../client/public"))); 
+console.log("Serving static files from:", path.join(__dirname, "uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.get("/", (req, res) => {
     res.render("home", { title: "Scope", styles: ["home"] });
@@ -135,7 +137,7 @@ app.use("/api/auth", authRoutes);
 app.listen(PORT, async () => {
     try {
         await connectDB(); 
-        console.log("Server is running on port PORT");
+        console.log(`Server running on http://localhost:${PORT}`);
     } catch (error) {
         console.error("Failed to connect to the database:", error);
         process.exit(1);  

@@ -127,6 +127,29 @@ export const connectDB = async () => {
             );
         `);
 
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS menu (
+                menuId INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                picture TEXT, 
+                sellingPrice REAL, 
+                canteenId INTEGER NOT NULL,
+                FOREIGN KEY (canteenId) REFERENCES canteens(canteenId) ON DELETE CASCADE
+            )
+        `);
+        
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS ingredients (
+                ingredientId INTEGER PRIMARY KEY AUTOINCREMENT,
+                menuId INTEGER NOT NULL,
+                ingredient TEXT NOT NULL,
+                quantity TEXT NOT NULL,   
+                cost REAL,  
+                FOREIGN KEY (menuId) REFERENCES menu(menuId) ON DELETE CASCADE
+            )
+        `);
+        
+
         await db.run("COMMIT");
 
         return db;

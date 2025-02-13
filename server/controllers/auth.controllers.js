@@ -5,6 +5,7 @@ import bcryptjs from 'bcryptjs';
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
+import { connect } from 'http2';
 
 export const adminRegister = async (req, res) => {
     const { adminEmail, adminFirstName, adminLastName, adminPassword, confirmPassword } = req.body;
@@ -262,6 +263,73 @@ export const addPurchase = async (req, res) => {
     }
 };
 
+export const addMainMenu = async (req, res) => {
+    try {
+        const { name, sellingPrice } = req.body;
+        let ingredients = [];
+
+        try {
+            ingredients = JSON.parse(req.body.ingredients || "[]");
+        } catch (error) {
+            return res.status(400).json({ success: false, message: "Invalid ingredients format." });
+        }
+
+        const canteenId = 1;
+        const picture = req.file ? `/uploads/${req.file.filename}` : null;
+
+        if (!name || !picture || !sellingPrice || ingredients.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required, including at least one ingredient."
+            });
+        }
+
+        let db;
+        try {
+            db = await connectDB();
+
+            const result = await db.run(
+                "INSERT INTO menu (name, picture, sellingPrice, canteenId) VALUES (?, ?, ?, ?)",
+                [name, picture, sellingPrice, canteenId]
+            );
+
+            const menuId = result.lastID;
+
+            const ingredientInsertPromises = ingredients.map(({ ingredient, quantity, cost }) => {
+                return db.run(
+                    "INSERT INTO ingredients (menuId, ingredient, quantity, cost) VALUES (?, ?, ?, ?)",
+                    [menuId, ingredient, quantity, cost]
+                );
+            });
+
+            await Promise.all(ingredientInsertPromises);
+
+            res.status(201).json({
+                success: true,
+                message: "Menu added successfully!",
+                menuId: menuId
+            });
+
+        } catch (error) {
+            console.error("Error adding menu:", error);
+            res.status(500).json({
+                success: false,
+                message: "Failed to add menu."
+            });
+        } finally {
+            if (db) {
+                await db.close();
+            }
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message
+        });
+    }
+};
+
 export const addInventory = async (req, res) => {
     const { productName, quantity, unit } = req.body;
     const { stallId } = req.params; 
@@ -430,6 +498,37 @@ export const addStallB = async (req, res) => {
     }
 };
 
+export const deleteMenu = async (req, res) => {
+    const { menuId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+
+        const menu = await db.get('SELECT * FROM menu WHERE menuId = ?', [menuId]);
+
+        if (!menu) {
+            return res.status(404).json({
+                success: false,
+                message: "Menu not found"
+            });
+        }
+
+        await db.run('DELETE FROM menu WHERE menuId = ?', [menuId]);
+
+        res.status(200).json({
+            success: true,
+            message: "Menu deleted successfully"
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: "An error occurred while deleting the menu",
+            error: error.message
+        });
+    }
+};
+
 export const deletePurchase = async (req, res) => {
     const { productId } = req.params;
 
@@ -575,6 +674,59 @@ export const deleteInventory = async (req, res) => {
         }
     }
 }
+
+export const viewMenu = async (req, res) => {
+    let db;
+    try {
+        db = await connectDB();
+        const baseUrl = "http://localhost:3000"; // Ensure this matches your backend URL
+
+        const menuWithIngredients = await db.all(`
+            SELECT m.menuId, m.name, m.picture, m.sellingPrice, 
+                   i.ingredientId, i.ingredient, i.quantity, i.cost
+            FROM menu m
+            LEFT JOIN ingredients i ON m.menuId = i.menuId
+        `);
+
+        const menuMap = {};
+        menuWithIngredients.forEach(row => {
+            if (!menuMap[row.menuId]) {
+                menuMap[row.menuId] = {
+                    menuId: row.menuId,
+                    name: row.name,
+                    picture: row.picture ? `${baseUrl}${row.picture}` : null, // Convert to full URL
+                    sellingPrice: row.sellingPrice,
+                    ingredients: []
+                };
+            }
+            if (row.ingredientId) { 
+                menuMap[row.menuId].ingredients.push({
+                    ingredientId: row.ingredientId,
+                    ingredient: row.ingredient,
+                    quantity: row.quantity,
+                    cost: row.cost
+                });
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Menu retrieved successfully",
+            menu: Object.values(menuMap)
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the menu",
+            error: error.message
+        });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
+    }
+};
+
  
 export const viewPurchases = async (req, res) => {
     let db;
@@ -762,6 +914,61 @@ export const searchInventory = async (req, res, next) => {
     }
 };
 
+export const updateMenu = async (req, res) => {
+    const { menuId } = req.params;
+    const { name, picture, sellingPrice, ingredients } = req.body; 
+
+    let db;
+    try {
+        if (!name || !picture || !sellingPrice || !Array.isArray(ingredients) || ingredients.length === 0) {
+            throw new Error("All fields are required, including at least one ingredient.");
+        }
+
+        db = await connectDB();
+
+        const menu = await db.get("SELECT * FROM menu WHERE menuId = ?", [menuId]);
+
+        if (!menu) {
+            return res.status(404).json({
+                success: false,
+                message: "Menu not found"
+            });
+        }
+
+        await db.run(
+            "UPDATE menu SET name = ?, picture = ?, sellingPrice = ? WHERE menuId = ?",
+            [name, picture, sellingPrice, menuId]
+        );
+
+        await db.run("DELETE FROM ingredients WHERE menuId = ?", [menuId]);
+
+        const insertIngredientStmt = await db.prepare(
+            "INSERT INTO ingredients (menuId, ingredient, quantity, cost) VALUES (?, ?, ?, ?)"
+        );
+
+        for (const ing of ingredients) {
+            await insertIngredientStmt.run(menuId, ing.ingredient, ing.quantity, ing.cost);
+        }
+        await insertIngredientStmt.finalize();
+
+        res.status(200).json({
+            success: true,
+            message: "Menu updated successfully"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while updating the menu",
+            error: error.message
+        });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
 export const updateSales = async (req, res) => {
     const { reportId } = req.params;
     const { salesDate, cash, cost, canteenId, stallId } = req.body;
@@ -866,6 +1073,49 @@ export const updateInventory = async (req, res) => {
     } finally {
         if (db) {
             await db.close(); 
+        }
+    }
+};
+
+export const getMenu = async (req, res) => {
+    const { menuId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+
+        const menu = await db.get(
+            "SELECT * FROM menu WHERE menuId = ?",
+            [menuId]
+        );
+
+        if (!menu) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Menu not found" 
+            });
+        }
+
+        const ingredients = await db.all(
+            "SELECT * FROM ingredients WHERE menuId = ?",
+            [menuId]
+        );
+
+        res.status(200).json({ 
+            success: true, 
+            menu, 
+            ingredients 
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while fetching the menu",
+            error: error.message
+        });
+    } finally {
+        if (db) {
+            await db.close();  
         }
     }
 };
