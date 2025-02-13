@@ -1,0 +1,125 @@
+<div class="d-flex">
+    <aside id="sidebar">
+        <div class="sidebar-logo">
+            <img src="/images/SCOOP.png" alt="Scope Logo" width="150px">
+        </div>
+        <ul class="sidebar-nav p-0">
+            <li class="sidebar-header">
+                Menu
+            </li>
+            <li id="dashboard" class="sidebar-item">
+                <a href="/admin/dashboard" class="sidebar-link">
+                    <i class="material-icons">dashboard</i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-header">
+                Others
+            </li>
+            <li id="purchases" class="sidebar-item">
+                <a href="/admin/purchases" class="sidebar-link">
+                    <i class="material-icons">shopping_cart_checkout</i>
+                    <span>Purchases</span>
+                </a>
+            </li>
+            <li id="inventory" class="sidebar-item">
+                <a href="/admin/inventory" class="sidebar-link">
+                    <i class="material-icons">inventory</i>
+                    <span>Inventory</span>
+                </a>
+            </li>
+            <li id="sales" class="sidebar-item">
+                <a href="/admin/sales" class="sidebar-link">
+                    <i class="material-icons">request_quote</i>
+                    <span>Sales</span>
+                </a>
+            </li>
+            <li id="schedule" class="sidebar-item">
+                <a href="/admin/schedule" class="sidebar-link">
+                    <i class="material-icons">event</i>
+                    <span>Schedule</span>
+                </a>
+            </li>
+            <li id="menu" class="sidebar-item">
+                <a href="/admin/menu" class="sidebar-link">
+                    <i class="material-icons">restaurant</i>
+                    <span>Menu</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="profile-container">
+                <div class="profile-circle">
+                    <!-- Profile picture will go here -->
+                </div>
+                <button id="logoutButton" class="logout-btn">
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <nav class="navbar navbar-expand">
+            <button class="toggler-btn" type="button">
+                <i class="material-icons">menu</i>
+            </button>
+        </nav>
+
+        <main class="p-3">
+            <div class="container-fluid pb-5">
+                <div class="row">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <h1 class="header">Menu</h1>
+                        </div>
+                        <div class="col-6 d-flex justify-content-end gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle" type="button" id="canteenDropdown"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    Main Canteen
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="canteenDropdown">
+                                    <li><a class="dropdown-item" href="/admin/menu/main" data-value="main">Main Canteen</a></li>
+                                    <li><a class="dropdown-item" href="/admin/menu/secondary" data-value="secondary">Secondary Canteen</a>
+                                    </li>
+                                </ul>
+                                <input type="hidden" id="selectedCanteen" name="canteen">
+                            </div>
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#addMenuModal"
+                                class="btn btn-light btn-sm hover-orange">
+                                + Add Menu
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card-container" id="menu-container">
+                        <!-- Menu cards will be added dynamically here -->
+
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="modal fade" id="addMenuModal" tabindex="-1" aria-labelledby="addMenuModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/mainMenu.js"></script>
+
+<script>
+    document.querySelectorAll(".dropdown-item").forEach(item => {
+        item.addEventListener("click", function () {
+            document.getElementById("canteenDropdown").textContent = this.textContent;
+            document.getElementById("selectedCanteen").value = this.getAttribute("data-value");
+        });
+    });
+</script>

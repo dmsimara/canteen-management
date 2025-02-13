@@ -113,6 +113,14 @@ app.get("/admin/menu", (req, res) => {
     res.render("adminMenu", { title: "Scope", styles: ["adminMenu"] });
 });
 
+app.get("/admin/menu/main", (req, res) => {
+    res.render("mainMenu", { title: "Scope", styles: ["mainMenu"] });
+});
+
+app.get("/admin/menu/secondary", (req, res) => {
+    res.render("secondMenu", { title: "Scope", styles: ["secondMenu"] });
+});
+
 app.get("/admin/staff", (req, res) => {
     res.render("adminStaff", { title: "Scope", styles: ["adminStaff"] });
 });
