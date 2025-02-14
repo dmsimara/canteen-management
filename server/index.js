@@ -48,8 +48,26 @@ app.get("/admin/register", (req, res) => {
     res.render("adminRegister", { title: "Scope", styles: ["adminRegister"] });
 })
 
-app.get("/admin/dashboard", (req, res) => {
-    res.render("adminDashboard", { title: "Scope", styles: ["adminDashboard"] });
+app.get("/admin/dashboard", async (req, res) => {
+    try {
+        let db = await connectDB(); 
+
+        const mainMenuCount = await db.get("SELECT COUNT(*) AS count FROM menu WHERE canteenId = 1");
+        const secondMenuCount = await db.get("SELECT COUNT(*) AS count FROM menu WHERE canteenId = 2");
+
+        db.close();
+
+        res.render("adminDashboard", { 
+            title: "Scope", 
+            styles: ["adminDashboard"],
+            mainMenu: mainMenuCount.count,  
+            secondMenu: secondMenuCount.count
+        });
+
+    } catch (error) {
+        console.error("Error fetching menu counts:", error);
+        res.status(500).send("Server Error");
+    }
 });
 
 app.get("/admin/purchases", (req, res) => {

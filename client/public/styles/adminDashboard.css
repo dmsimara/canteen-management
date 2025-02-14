@@ -208,16 +208,6 @@ ul.sidebar-nav .sidebar-item.active {
     padding: 20px;
 }
 
-.right {
-    background-color: var(--gradient4);
-    flex: 3;  
-    min-width: 0;
-    min-height: 355px;
-    height: 100%;
-    border-radius: 30px;
-    padding: 20px;
-}
-
 .left .title {
     display: flex;
     align-items: center;
@@ -235,6 +225,16 @@ ul.sidebar-nav .sidebar-item.active {
     margin-left: 10px;
 }
 
+.right {
+    background-color: var(--gradient4);
+    flex: 3;  
+    min-width: 0;
+    min-height: 355px;
+    height: 100%;
+    border-radius: 30px;
+    padding: 20px;
+}
+
 .right .title {
     display: flex;
     align-items: center;
@@ -247,4 +247,63 @@ ul.sidebar-nav .sidebar-item.active {
     margin-left: 8px;
     font-weight: 700;
     font-size: 20px;
+}
+
+.mainMenu, .secondMenu {
+    background: var(--gradient3); 
+    padding: 15px;
+    border-radius: 15px;
+    text-align: left;
+    margin-top: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mainMenu {
+    margin-bottom: 8px;
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-bottom: 5px;
+    padding-left: 10px;
+}
+
+.mainMenu i, .secondMenu i {
+    font-size: 30px;
+    color: var(--oceanBlue);
+}
+
+.mainMenu span, .secondMenu span {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    margin-top: 5px;
+}
+
+.mainMenu p, .secondMenu p {
+    color: white;
+    font-size: 14px;
+    margin: 5px 0;
+    padding-left: 10px;
+}
+
+.viewBtn {
+    width: 100%;
+    background-color: var(--oceanBlue);
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: opacity 0.3s ease;
+}
+
+.viewBtn:hover {
+    opacity: 0.7;
 }
