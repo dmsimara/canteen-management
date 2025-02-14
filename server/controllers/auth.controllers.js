@@ -916,56 +916,35 @@ export const searchInventory = async (req, res, next) => {
 
 export const updateMenu = async (req, res) => {
     const { menuId } = req.params;
-    const { name, picture, sellingPrice, ingredients } = req.body; 
-
+    const { name, sellingPrice, ingredients } = req.body;
     let db;
-    try {
-        if (!name || !picture || !sellingPrice || !Array.isArray(ingredients) || ingredients.length === 0) {
-            throw new Error("All fields are required, including at least one ingredient.");
-        }
 
+    try {
         db = await connectDB();
 
-        const menu = await db.get("SELECT * FROM menu WHERE menuId = ?", [menuId]);
-
-        if (!menu) {
-            return res.status(404).json({
-                success: false,
-                message: "Menu not found"
-            });
-        }
-
         await db.run(
-            "UPDATE menu SET name = ?, picture = ?, sellingPrice = ? WHERE menuId = ?",
-            [name, picture, sellingPrice, menuId]
+            'UPDATE menu SET name = ?, sellingPrice = ? WHERE menuId = ?',
+            [name, sellingPrice, menuId]
         );
 
-        await db.run("DELETE FROM ingredients WHERE menuId = ?", [menuId]);
+        await db.run('DELETE FROM ingredients WHERE menuId = ?', [menuId]);
 
-        const insertIngredientStmt = await db.prepare(
-            "INSERT INTO ingredients (menuId, ingredient, quantity, cost) VALUES (?, ?, ?, ?)"
-        );
+        if (ingredients) {
+            const parsedIngredients = JSON.parse(ingredients);
 
-        for (const ing of ingredients) {
-            await insertIngredientStmt.run(menuId, ing.ingredient, ing.quantity, ing.cost);
+            for (const ing of parsedIngredients) {
+                await db.run(
+                    'INSERT INTO ingredients (menuId, ingredient, quantity, cost) VALUES (?, ?, ?, ?)',
+                    [menuId, ing.ingredient, ing.quantity, ing.cost]
+                );
+            }
         }
-        await insertIngredientStmt.finalize();
 
-        res.status(200).json({
-            success: true,
-            message: "Menu updated successfully"
-        });
+        res.status(200).json({ success: true, message: "Menu updated successfully" });
 
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "An error occurred while updating the menu",
-            error: error.message
-        });
-    } finally {
-        if (db) {
-            await db.close();
-        }
+        console.error("Error updating menu:", error);
+        res.status(500).json({ success: false, message: "An error occurred while updating the menu", error: error.message });
     }
 };
 

@@ -34,7 +34,7 @@ router.get("/admin/export/sales/pdf/:period", exportSalesPDF);
 router.get("/admin/view/menu/main", viewMenu);
 router.delete('/admin/menu/:menuId', deleteMenu);
 router.post("/admin/add/menu", upload.single("picture"), addMainMenu);
-router.patch("/admin/menu/update/:menuId", updateMenu);
+router.patch("/admin/menu/update/:menuId", upload.single("picture"), updateMenu);
 router.get("/admin/menu/edit/:menuId", getMenu);
 
 router.post("/staff/register", staffRegister);

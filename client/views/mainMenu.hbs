@@ -190,14 +190,66 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary rounded-pill" id="editButton">Edit</button>
-                        <button type="button" class="btn btn-danger rounded-pill" id="deleteButton">Delete</button>
+                        <button type="button" class="btn btn-secondary rounded-pill"
+                            data-bs-dismiss="modal">Close</button>
+                        {{#each menus}}
+                        <button type="button" class="btn btn-danger rounded-pill deleteMenuButton"
+                            data-menu-id="{{this.menuId}}" onclick="setMenuId('{{this.menuId}}')">
+                            Delete
+                        </button>
+                        {{/each}}
                     </div>
-
                 </div>
             </div>
         </div>
+
+        <!-- Edit Menu Modal -->
+        <div class="modal fade" id="editMenuModal" tabindex="-1" aria-labelledby="editMenuModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editMenuModalLabel">Edit Menu</h5>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editMenuForm" enctype="multipart/form-data">
+                            <input type="hidden" id="editMenuId" name="editMenuId">
+
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="editName" name="name" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="picture" class="form-label">Picture</label>
+                                <input type="file" class="form-control" id="picture" name="picture" accept="image/*">
+                                <img id="previewImage" src="" alt="Current Image" class="img-fluid mt-2"
+                                    style="display: none;">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ingredients</label>
+                                <div id="editIngredientsContainer"></div>
+                                <button type="button" class="btn btn-success mt-2" id="addEditIngredient">+ Add
+                                    Ingredient</button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="editSellingPrice" class="form-label">Selling Price</label>
+                                <input type="number" class="form-control" id="editSellingPrice" name="sellingPrice"
+                                    required>
+                            </div>
+
+                            <div class="button-container mt-3 d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Update Menu</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
     </div>
 </div>

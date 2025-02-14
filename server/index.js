@@ -115,9 +115,22 @@ app.get("/admin/menu", (req, res) => {
     res.render("adminMenu", { title: "Scope", styles: ["adminMenu"] });
 });
 
-app.get("/admin/menu/main", (req, res) => {
-    res.render("mainMenu", { title: "Scope", styles: ["mainMenu"] });
+app.get("/admin/menu/main", async (req, res) => {
+    try {
+        const db = await connectDB();
+        const menus = await db.all("SELECT * FROM menu");
+
+        res.render("mainMenu", {
+            title: "Scope",
+            styles: ["mainMenu"],
+            menus, 
+        });
+    } catch (error) {
+        console.error("Error fetching menus:", error);
+        res.status(500).send("Internal Server Error");
+    }
 });
+
 
 app.get("/admin/menu/secondary", (req, res) => {
     res.render("secondMenu", { title: "Scope", styles: ["secondMenu"] });
