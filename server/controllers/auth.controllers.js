@@ -1333,23 +1333,24 @@ export const viewStalls = async (req, res) => {
 
 export const exportSalesCSV = async (req, res) => {
     try {
-        const { period } = req.params; 
+        const { period } = req.params;
         const db = await connectDB();
         
         let query = `
-            SELECT stallId, salesDate, SUM(profit) AS totalProfit, SUM(cost) AS totalCost, SUM(cash) AS totalCash
-            FROM sales
+            SELECT s.stallName, sa.salesDate, sa.profit, sa.cost, sa.cash
+            FROM sales sa
+            JOIN stalls s ON sa.stallId = s.stallId
         `;
 
         if (period === "weekly") {
-            query += " WHERE salesDate >= date('now', '-7 days')";
+            query += " WHERE sa.salesDate >= date('now', '-7 days')";
         } else if (period === "monthly") {
-            query += " WHERE salesDate >= date('now', '-30 days')";
+            query += " WHERE sa.salesDate >= date('now', '-30 days')";
         } else {
             return res.status(400).json({ error: "Invalid period. Use 'weekly' or 'monthly'." });
         }
 
-        query += " GROUP BY stallId, salesDate ORDER BY salesDate DESC";
+        query += " ORDER BY sa.salesDate DESC"; 
 
         const salesData = await db.all(query);
 
@@ -1357,7 +1358,17 @@ export const exportSalesCSV = async (req, res) => {
         if (salesData.length === 0) {
             csv = "No sales data available for the selected period.";
         } else {
-            const fields = ["stallId", "salesDate", "totalProfit", "totalCost", "totalCash"];
+            const totalRow = {
+                stallName: "Total",
+                salesDate: "",
+                profit: salesData.reduce((sum, row) => sum + row.profit, 0),
+                cost: salesData.reduce((sum, row) => sum + row.cost, 0),
+                cash: salesData.reduce((sum, row) => sum + row.cash, 0),
+            };
+
+            salesData.push(totalRow);
+
+            const fields = ["stallName", "salesDate", "profit", "cost", "cash"];
             const json2csvParser = new Parser({ fields });
             csv = json2csvParser.parse(salesData);
         }
@@ -1373,23 +1384,24 @@ export const exportSalesCSV = async (req, res) => {
 
 export const exportSalesPDF = async (req, res) => {
     try {
-        const { period } = req.params; 
+        const { period } = req.params;
         const db = await connectDB();
 
         let query = `
-            SELECT stallId, salesDate, SUM(profit) AS totalProfit, SUM(cost) AS totalCost, SUM(cash) AS totalCash
-            FROM sales
+            SELECT s.stallName, sa.salesDate, SUM(sa.profit) AS totalProfit, SUM(sa.cost) AS totalCost, SUM(sa.cash) AS totalCash
+            FROM sales sa
+            JOIN stalls s ON sa.stallId = s.stallId
         `;
 
         if (period === "weekly") {
-            query += " WHERE salesDate >= date('now', '-7 days')";
+            query += " WHERE sa.salesDate >= date('now', '-7 days')";
         } else if (period === "monthly") {
-            query += " WHERE salesDate >= date('now', '-30 days')";
+            query += " WHERE sa.salesDate >= date('now', '-30 days')";
         } else {
             return res.status(400).json({ error: "Invalid period. Use 'weekly' or 'monthly'." });
         }
 
-        query += " GROUP BY stallId, salesDate ORDER BY salesDate DESC";
+        query += " GROUP BY s.stallName, sa.salesDate ORDER BY sa.salesDate DESC"; 
 
         const salesData = await db.all(query);
 
@@ -1409,21 +1421,39 @@ export const exportSalesPDF = async (req, res) => {
         if (salesData.length === 0) {
             doc.fontSize(14).text("No sales data available for the selected period.", { align: "center" }).moveDown(2);
         } else {
-            doc.fontSize(12).text("Stall ID", 50, 100, { bold: true });
+            doc.fontSize(12).text("Stall Name", 50, 100, { bold: true });
             doc.text("Sales Date", 150, 100, { bold: true });
-            doc.text("Total Profit", 250, 100, { bold: true });
-            doc.text("Total Cost", 350, 100, { bold: true });
-            doc.text("Total Cash", 450, 100, { bold: true });
+            doc.text("Profit", 250, 100, { bold: true });
+            doc.text("Cost", 350, 100, { bold: true });
+            doc.text("Cash", 450, 100, { bold: true });
 
             let y = 120;
+            let totalProfit = 0;
+            let totalCost = 0;
+            let totalCash = 0;
+
             salesData.forEach((sale) => {
-                doc.text(sale.stallId, 50, y);
+                doc.text(sale.stallName, 50, y);
                 doc.text(sale.salesDate, 150, y);
                 doc.text(`₱${sale.totalProfit.toFixed(2)}`, 250, y);
                 doc.text(`₱${sale.totalCost.toFixed(2)}`, 350, y);
                 doc.text(`₱${sale.totalCash.toFixed(2)}`, 450, y);
+
+                totalProfit += sale.totalProfit;
+                totalCost += sale.totalCost;
+                totalCash += sale.totalCash;
+
                 y += 20;
             });
+
+            doc.moveTo(50, y).lineTo(500, y).stroke();
+            y += 10;
+
+            doc.fontSize(12).text("Total", 50, y, { bold: true });
+            doc.text("", 150, y); 
+            doc.text(`₱${totalProfit.toFixed(2)}`, 250, y);
+            doc.text(`₱${totalCost.toFixed(2)}`, 350, y);
+            doc.text(`₱${totalCash.toFixed(2)}`, 450, y);
         }
 
         doc.end();
