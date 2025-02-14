@@ -148,7 +148,8 @@
 
                             <div class="button-container">
                                 <button type="submit" class="btn btn-primary updateBtn">Update</button>
-                                <button type="button" class="btn btn-danger deleteBtn" id="deleteScheduleBtn">Delete</button>
+                                <button type="button" class="btn btn-danger deleteBtn"
+                                    id="deleteScheduleBtn">Delete</button>
                             </div>
 
                         </form>
@@ -176,13 +177,13 @@
                 return data.schedule.map(event => {
                     let startTime = new Date(event.eventDate);
                     let endTime = new Date(startTime);
-                    endTime.setHours(startTime.getHours() + 1); 
+                    endTime.setHours(startTime.getHours() + 1);
 
                     return {
                         id: event.scheduleId,
                         title: event.eventName,
                         start: startTime.toISOString(),
-                        end: endTime.toISOString(), 
+                        end: endTime.toISOString(),
                         description: event.eventDescription || ""
                     };
                 });
@@ -193,18 +194,17 @@
         }
 
         function formatDateForInput(date) {
-            if (!date) return ""; 
+            if (!date) return "";
 
             const d = new Date(date);
             const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0'); 
+            const month = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             const hours = String(d.getHours()).padStart(2, '0');
             const minutes = String(d.getMinutes()).padStart(2, '0');
 
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
-
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
@@ -238,7 +238,7 @@
                 const eventNameInput = document.getElementById('editEventName');
                 const eventDateInput = document.getElementById('editEventDate');
                 const eventDescriptionInput = document.getElementById('editEventDescription');
-                const scheduleIdInput = document.getElementById('editScheduleId'); // Hidden input
+                const scheduleIdInput = document.getElementById('editScheduleId');  
 
                 if (!eventNameInput || !eventDateInput || !eventDescriptionInput || !scheduleIdInput) {
                     console.error("One or more form inputs not found!");
@@ -250,7 +250,7 @@
                 eventNameInput.value = info.event.title || "";
                 eventDateInput.value = formatDateForInput(info.event.start);
                 eventDescriptionInput.value = info.event.extendedProps?.description || "";
-                scheduleIdInput.value = info.event.id; 
+                scheduleIdInput.value = info.event.id;
 
                 console.log("Filled Form Data:", {
                     scheduleId: scheduleIdInput.value,
@@ -262,23 +262,26 @@
                 const modal = new bootstrap.Modal(document.getElementById('editScheduleModal'));
                 modal.show();
             }
-
         });
 
         calendar.render();
 
-        calendar.updateSize();
-        window.addEventListener('resize', function () {
-            calendar.updateSize();
-        });
+        function adjustCalendarSize() {
+            setTimeout(() => {
+                calendar.updateSize();
+            }, 50); 
+        }
 
-        setTimeout(() => {
-            calendar.updateSize();
-        }, 100);
+        const sidebar = document.querySelector('#sidebar');
+        if (sidebar) {
+            sidebar.addEventListener('transitionend', adjustCalendarSize); 
+        }
+
+        window.addEventListener('resize', adjustCalendarSize);
 
         document.getElementById('editScheduleForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const scheduleId = document.getElementById('editScheduleId').value; 
+            const scheduleId = document.getElementById('editScheduleId').value;
 
             if (!scheduleId) {
                 console.error("Error: Schedule ID is missing!");
@@ -298,7 +301,7 @@
                 const result = await response.json();
                 if (result.success) {
                     alert('Schedule updated successfully!');
-                    calendar.refetchEvents(); 
+                    calendar.refetchEvents();
                     bootstrap.Modal.getInstance(document.getElementById('editScheduleModal')).hide();
                 } else {
                     alert(result.message);
