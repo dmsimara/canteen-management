@@ -1,6 +1,6 @@
 import express from 'express';
 import { upload } from '../middleware/upload.js';
-import { addInventory, addMainMenu, addPurchase, addSales, addSecondMenu, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deleteMenu, deletePurchase, deleteSales, deleteStall, exportSalesCSV, exportSalesPDF, filterSales, getInventory, getMenu, getSales, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, updateMenu, updateSales, viewInventory, viewMenu, viewPurchases, viewSales, viewSecondMenu, viewStalls, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
+import { addInventory, addMainMenu, addPurchase, addSales, addSchedule, addSecondMenu, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deleteMenu, deletePurchase, deleteSales, deleteSchedule, deleteStall, exportSalesCSV, exportSalesPDF, filterSales, getInventory, getMenu, getSales, getSchedules, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, updateMenu, updateSales, updateSchedule, viewInventory, viewMenu, viewPurchases, viewSales, viewSchedule, viewSecondMenu, viewStalls, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
@@ -38,6 +38,11 @@ router.patch("/admin/menu/update/:menuId", upload.single("picture"), updateMenu)
 router.get("/admin/menu/edit/:menuId", getMenu);
 router.post("/admin/add/second/menu", upload.single("picture"), addSecondMenu);
 router.get("/admin/view/menu/second", viewSecondMenu);
+router.post("/admin/add/schedule", addSchedule);
+router.delete('/admin/schedule/:scheduleId', deleteSchedule);
+router.get("/admin/view/schedule", viewSchedule);
+router.patch("/admin/schedule/update/:scheduleId", updateSchedule);
+router.get("/admin/schedule/edit/:scheduleId", getSchedules);
 
 router.post("/staff/register", staffRegister);
 router.post("/staff/logout", staffLogout);

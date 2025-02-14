@@ -219,6 +219,48 @@ export const staffLogout = async (req, res) => {
     });
 };
 
+export const addSchedule = async (req, res) => {
+    const { eventDate, eventName, eventDescription } = req.body;
+
+    if (!eventDate || !eventName) {
+        return res.status(400).json({
+            success: false,
+            message: "All fields are required"
+        });
+    }
+
+    let db;
+    try {
+        db = await connectDB();
+
+        const schedule = await db.run(
+            "INSERT INTO schedule (eventDate, eventName, eventDescription) VALUES (?,?, ?)", 
+            [eventDate, eventName, eventDescription]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Schedule added successfully",
+            schedule: {
+                scheduleId: schedule.lastID,
+                eventDate,
+                eventName,
+                eventDescription
+            }
+        });
+    } catch (error) {
+        console.error("Error adding schedule:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to add schedule"
+        });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
 export const addPurchase = async (req, res) => {
     const { productName, price, quantity, MOP, date } = req.body;
 
@@ -565,6 +607,37 @@ export const addStallB = async (req, res) => {
     }
 };
 
+export const deleteSchedule = async (req, res) => {
+    const { scheduleId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+
+        const schedule = await db.get('SELECT * FROM schedule WHERE scheduleId = ?', [scheduleId]);
+
+        if (!schedule) {
+            return res.status(404).json({
+                success: false,
+                message: "Schedule not found"
+            });
+        }
+
+        await db.run('DELETE FROM schedule WHERE scheduleId = ?', [scheduleId]);
+
+        res.status(200).json({
+            success: true,
+            message: "Schedule deleted successfully"
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: "An error occurred while deleting the schedule",
+            error: error.message
+        });
+    }
+};
+
 export const deleteMenu = async (req, res) => {
     const { menuId } = req.params;
 
@@ -848,6 +921,31 @@ export const viewSecondMenu = async (req, res) => {
     }
 };
 
+export const viewSchedule = async (req, res) => {
+    let db;
+    try {
+        db = await connectDB();
+
+        const schedule = await db.all('SELECT * FROM schedule');
+
+        res.status(200).json({
+            success: true,
+            message: "Schedule retrieved successfully",
+            schedule
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the schedule",
+            error: error.message
+        });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
 export const viewPurchases = async (req, res) => {
     let db;
     try {
@@ -1068,6 +1166,55 @@ export const updateMenu = async (req, res) => {
     }
 };
 
+export const updateSchedule = async (req, res) => {
+    const { scheduleId } = req.params;
+    const { eventName, eventDate, eventDescription } = req.body;
+
+    let db;
+    try {
+        if (!eventName || !eventDate) {
+            throw new Error("Event name and date are required");
+        }
+
+        db = await connectDB();
+
+        const schedule = await db.run(
+            `UPDATE schedule
+            SET eventName = ?, eventDate = ?, eventDescription = ?
+            WHERE scheduleId = ?`,
+            [eventName, eventDate, eventDescription, scheduleId]
+        );
+
+        if (schedule.changes === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Schedule not found or no changes made."
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Schedule updated successfully",
+            updatedSchedule: {
+                scheduleId,
+                eventName,
+                eventDate,
+                eventDescription
+            }
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: "Invalid event date",
+            error: error.message
+        });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
 export const updateSales = async (req, res) => {
     const { reportId } = req.params;
     const { salesDate, cash, cost, canteenId, stallId } = req.body;
@@ -1212,6 +1359,32 @@ export const getMenu = async (req, res) => {
             message: "An error occurred while fetching the menu",
             error: error.message
         });
+    } finally {
+        if (db) {
+            await db.close();  
+        }
+    }
+};
+
+export const getSchedules = async (req, res) => {
+    const { scheduleId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+        const schedule = await db.get(
+            "SELECT * FROM schedule WHERE scheduleId = ?",
+            [scheduleId]
+        );
+
+        if (!schedule) {
+            return res.status(404).json({ success: false, message: "Schedule not found" });
+        }
+
+        res.json({ success: true, schedule });
+    } catch (error) {
+        console.error("Error fetching schedule:", error);
+        res.status(500).json({ success: false, message: "Database query failed" });
     } finally {
         if (db) {
             await db.close();  

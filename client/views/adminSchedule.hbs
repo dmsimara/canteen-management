@@ -1,0 +1,311 @@
+<div class="d-flex">
+    <aside id="sidebar">
+        <div class="sidebar-logo">
+            <img src="/images/SCOOP.png" alt="Scope Logo" width="150px">
+        </div>
+        <ul class="sidebar-nav p-0">
+            <li class="sidebar-header">
+                Menu
+            </li>
+            <li id="dashboard" class="sidebar-item">
+                <a href="/admin/dashboard" class="sidebar-link">
+                    <i class="material-icons">dashboard</i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-header">
+                Others
+            </li>
+            <li id="purchases" class="sidebar-item">
+                <a href="/admin/purchases" class="sidebar-link">
+                    <i class="material-icons">shopping_cart_checkout</i>
+                    <span>Purchases</span>
+                </a>
+            </li>
+            <li id="inventory" class="sidebar-item">
+                <a href="/admin/inventory" class="sidebar-link">
+                    <i class="material-icons">inventory</i>
+                    <span>Inventory</span>
+                </a>
+            </li>
+            <li id="sales" class="sidebar-item">
+                <a href="/admin/sales" class="sidebar-link">
+                    <i class="material-icons">request_quote</i>
+                    <span>Sales</span>
+                </a>
+            </li>
+            <li id="schedule" class="sidebar-item">
+                <a href="/admin/schedule" class="sidebar-link">
+                    <i class="material-icons">event</i>
+                    <span>Schedule</span>
+                </a>
+            </li>
+            <li id="menu" class="sidebar-item">
+                <a href="/admin/menu" class="sidebar-link">
+                    <i class="material-icons">restaurant</i>
+                    <span>Menu</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="profile-container">
+                <div class="profile-circle">
+                    <!-- Profile picture will go here -->
+                </div>
+                <button id="logoutButton" class="logout-btn">
+                    <span>Log Out</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main">
+        <nav class="navbar navbar-expand">
+            <button class="toggler-btn" type="button">
+                <i class="material-icons">menu</i>
+            </button>
+        </nav>
+
+        <main class="p-3">
+            <div class="container-fluid pb-5">
+                <div class="row">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <h1 class="header">Schedule</h1>
+                        </div>
+                        <div class="col-6 d-flex justify-content-end gap-2">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#addScheduleModal"
+                                class="btn btn-light btn-sm hover-orange">
+                                + Add Schedule
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="calendar-container"></div>
+                </div>
+            </div>
+        </main>
+
+        {{!-- add schedule modal --}}
+        <div class="modal fade" id="addScheduleModal" tabindex="-1" aria-labelledby="addScheduleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <form action="/api/auth/admin/add/schedule" method="POST" id="scheduleForm" style="width: 80%;">
+                            <div class="mb-6">
+                                <label for="eventName" class="form-label">Event Name</label>
+                                <input type="text" class="form-control" id="eventName" name="eventName" required>
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="eventDate" class="form-label">Event Date</label>
+                                <input type="datetime-local" class="form-control" id="eventDate" name="eventDate"
+                                    required>
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="eventDescription" class="form-label">Event Description</label>
+                                <input type="datetime" class="form-control" id="eventDescription"
+                                    name="eventDescription">
+                            </div>
+
+                            <div class="button-container">
+                                <button type="submit" class="btn btn-primary">Add Schedule</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{!-- edit schedule modal --}}
+        <div class="modal fade" id="editScheduleModal" tabindex="-1" aria-labelledby="editScheduleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-md">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <form action="#" method="PATCH" id="editScheduleForm" style="width: 80%;">
+                            <input type="hidden" id="editScheduleId" name="scheduleId">
+                            <div class="mb-6">
+                                <label for="editEventName" class="form-label">Event Name</label>
+                                <input type="text" class="form-control" id="editEventName" name="eventName" value=""
+                                    required>
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="editEventDate" class="form-label">Event Date</label>
+                                <input type="datetime-local" class="form-control" id="editEventDate" name="eventDate"
+                                    value="" required>
+                            </div>
+
+                            <div class="mb-6">
+                                <label for="editEventDescription" class="form-label">Event Description</label>
+                                <input type="text" class="form-control" id="editEventDescription"
+                                    name="eventDescription" value="">
+                            </div>
+
+                            <div class="button-container">
+                                <button type="submit" class="btn btn-primary updateBtn">Update</button>
+                                <button type="button" class="btn btn-danger deleteBtn" id="deleteScheduleBtn">Delete</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/adminSchedule.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        var calendarEl = document.querySelector('.calendar-container');
+
+        async function fetchEvents() {
+            try {
+                const response = await fetch('/api/auth/admin/view/schedule');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Failed to fetch events.");
+                }
+
+                return data.schedule.map(event => {
+                    let startTime = new Date(event.eventDate);
+                    let endTime = new Date(startTime);
+                    endTime.setHours(startTime.getHours() + 1); 
+
+                    return {
+                        id: event.scheduleId,
+                        title: event.eventName,
+                        start: startTime.toISOString(),
+                        end: endTime.toISOString(), 
+                        description: event.eventDescription || ""
+                    };
+                });
+            } catch (error) {
+                console.error("Error fetching schedule:", error);
+                return [];
+            }
+        }
+
+        function formatDateForInput(date) {
+            if (!date) return ""; 
+
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0'); 
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'timeGridWeek,dayGridMonth'
+            },
+            views: {
+                timeGridWeek: {
+                    buttonText: 'Week',
+                    titleFormat: { year: 'numeric', month: 'long' }
+                },
+                dayGridMonth: { buttonText: 'Month' }
+            },
+            height: 'auto',
+            aspectRatio: 2,
+
+            events: async function (fetchInfo, successCallback, failureCallback) {
+                try {
+                    const events = await fetchEvents();
+                    successCallback(events);
+                } catch (error) {
+                    failureCallback(error);
+                }
+            },
+
+            eventClick: function (info) {
+                console.log("Clicked Event Data:", info.event);
+
+                const eventNameInput = document.getElementById('editEventName');
+                const eventDateInput = document.getElementById('editEventDate');
+                const eventDescriptionInput = document.getElementById('editEventDescription');
+                const scheduleIdInput = document.getElementById('editScheduleId'); // Hidden input
+
+                if (!eventNameInput || !eventDateInput || !eventDescriptionInput || !scheduleIdInput) {
+                    console.error("One or more form inputs not found!");
+                    return;
+                }
+
+                document.getElementById('editScheduleForm').reset();
+
+                eventNameInput.value = info.event.title || "";
+                eventDateInput.value = formatDateForInput(info.event.start);
+                eventDescriptionInput.value = info.event.extendedProps?.description || "";
+                scheduleIdInput.value = info.event.id; 
+
+                console.log("Filled Form Data:", {
+                    scheduleId: scheduleIdInput.value,
+                    eventName: eventNameInput.value,
+                    eventDate: eventDateInput.value,
+                    eventDescription: eventDescriptionInput.value
+                });
+
+                const modal = new bootstrap.Modal(document.getElementById('editScheduleModal'));
+                modal.show();
+            }
+
+        });
+
+        calendar.render();
+
+        calendar.updateSize();
+        window.addEventListener('resize', function () {
+            calendar.updateSize();
+        });
+
+        setTimeout(() => {
+            calendar.updateSize();
+        }, 100);
+
+        document.getElementById('editScheduleForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const scheduleId = document.getElementById('editScheduleId').value; 
+
+            if (!scheduleId) {
+                console.error("Error: Schedule ID is missing!");
+                return;
+            }
+
+            const formData = new FormData(this);
+            const updatedData = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch(`/api/auth/admin/schedule/update/${scheduleId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Schedule updated successfully!');
+                    calendar.refetchEvents(); 
+                    bootstrap.Modal.getInstance(document.getElementById('editScheduleModal')).hide();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error("Error updating schedule:", error);
+            }
+        });
+    });
+</script>

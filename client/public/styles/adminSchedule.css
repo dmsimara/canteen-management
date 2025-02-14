@@ -1,0 +1,412 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+    /* gradient */
+    --gradient1: #35155d;
+    --gradient2: #512b81;
+    --gradient3: #4477ce;
+    --gradient4: #8cabff;
+    --oceanBlue: #193c79;
+    --babyBlue: #e6edff;
+    --violet: #e4e0e9;
+    --violet2: #ab9ebb;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: 'Poppins', sans-serif; 
+    background: linear-gradient(to bottom right, var(--gradient1), var(--gradient2), var(--gradient3), var(--gradient4));
+    overflow: hidden;
+}
+
+li {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+}
+
+.main {
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+#sidebar {
+    max-width: 264px;
+    min-width: 264px;
+    transition: all 0.35s ease-in-out;
+    background-color: var(--babyBlue);
+    display: flex;
+    flex-direction: column;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+#sidebar.collapsed {
+    margin-left: -264px;
+}
+
+.toggler-btn {
+    background-color: transparent;
+    cursor: pointer;
+    border: 0;
+}
+
+.toggler-btn i {
+    font-size: 1.5rem;
+    color: white;
+    font-weight: bold;
+}
+
+.navbar {
+    padding: 1.15rem 1.5rem;
+}
+
+.sidebar-nav {
+    flex: 1 1 auto;
+}
+
+.sidebar-logo {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: -20px;
+}
+
+.sidebar-header {
+    color: var(--gradient1);
+    font-size: 1rem;
+    padding: 1.5rem 1.5rem .375rem;
+    font-weight: 600;
+}
+
+a.sidebar-link {
+    padding: 0.625rem 1.625rem;
+    color: var(--gradient2);
+    position: relative;
+    transition: all 0.3s ease-in-out;
+    border: 1px solid transparent;
+    display: flex;   
+    align-items: center;   
+    justify-content: flex-start;   
+}
+
+a.sidebar-link i {
+    margin-right: 0.75rem;  
+}
+
+a.sidebar-link:hover {
+    background-color: #f0f0f0;
+    color: var(--gradient2);
+    border-left: 4px solid var(--oceanBlue);
+}
+
+.sidebar-footer {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: center;   
+    align-items: center;
+}
+
+.profile-container {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.profile-circle {
+    width: 50px;   
+    height: 50px;
+    background-color: #ddd;   
+    border-radius: 50%;  
+    margin-right: 10px;   
+    overflow: hidden;   
+}
+
+.profile-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;  
+}
+
+.logout-btn {
+    background: linear-gradient(to right, var(--gradient1), var(--gradient2), var(--gradient3), var(--gradient4));
+    border: 1px solid var(--gradient1);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 20px;
+    border-radius: 15px;
+    transition: opacity 0.3s;
+}
+
+.logout-btn span {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.logout-btn:hover {
+    opacity: 0.8;
+}
+
+ul.sidebar-nav .sidebar-item.active {
+    background-color: #f0f0f0;
+    color: var(--gradient2);
+    border-left: 4px solid var(--oceanBlue);
+}
+
+
+.main {
+    flex-grow: 1;  
+    height: 100vh;  
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.row {
+    margin-bottom: 20px;
+}
+
+.header {
+    font-size: 40px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 5px;
+    margin-left: 20px;
+}
+
+.btn.hover-orange {
+    background: linear-gradient(to right, var(--gradient1), var(--gradient2), var(--gradient3), var(--gradient4));
+    border: 1px solid white;
+    color: white;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn.hover-orange:hover {
+    opacity: 0.8;
+}
+
+.main::-webkit-scrollbar {
+    width: 12px;
+}
+
+.main::-webkit-scrollbar-track {
+    background: var(--violet2);
+    border-radius: 10px;
+}
+
+.main::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, var(--gradient1), var(--gradient2));
+    border-radius: 10px;
+    border: 2px solid var(--babyBlue);  
+}
+
+.main::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, var(--gradient2), var(--gradient3));
+}
+
+.main::-webkit-scrollbar-corner {
+    background: var(--babyBlue);
+}
+
+.modal-dialog {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 550px;
+    margin: auto;
+}
+
+.modal-content {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--babyBlue);
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border: none;
+    display: flex;
+    align-items: center;  
+}
+
+.modal-body {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px !important;
+}
+
+.modal form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;  
+    padding: 0;
+}
+
+.form-label {
+    text-transform: capitalize;
+    color: var(--gradient1);
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.modal .form-control {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--gradient1);
+    padding: 8px 12px;
+    font-size: 16px;
+    transition: 0.3s ease-in-out;
+}
+
+.modal .form-control:focus {
+    border-color: var(--gradient2);
+    box-shadow: 0 0 5px rgba(0, 0, 255, 0.3);
+    outline: none;
+}
+
+.form-select {
+    border-radius: 10px;
+    border: 1px solid var(--gradient1);
+    padding: 8px;
+    transition: 0.3s ease-in-out;
+}
+
+.form-select:focus {
+    border-color: var(--gradient2);
+    box-shadow: 0 0 5px rgba(0, 0, 255, 0.3);
+    outline: none;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    padding-top: 10px; 
+}
+
+.btn-primary {
+    width: auto;
+    min-width: 120px; 
+    background: var(--gradient1);
+    border: 1px solid var(--gradient1);
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    background: none;
+    border: 1px solid var(--gradient1);
+    color: var(--gradient1);
+}
+
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
+.fc-timegrid-divider,
+.fc-timegrid-slots table,
+.fc-timegrid-col-frame {
+    border: none !important;
+}
+
+.fc-timegrid-slot {
+    border: none !important;
+}
+
+.fc-timegrid-cols > .fc-timegrid-col {
+    border-right: none !important;
+}
+
+.fc-toolbar-title {
+    color: white !important;
+}
+
+.fc-timegrid-axis-cushion, 
+.fc-timegrid-axis, 
+.fc-timegrid-slot-label {
+    color: white !important;
+}
+
+.fc-timegrid-axis {
+    background: transparent !important;
+}
+
+.fc-daygrid-day-number {
+    color: white !important;
+}
+
+.calendar-container {
+    width: 100% !important;
+    min-width: 100%;
+}
+
+.fc-daygrid-event {
+    background-color: var(--violet2) !important; 
+    color: var(--gradient1) !important; 
+    border: none !important;
+    cursor: pointer;
+}
+
+.fc-timegrid-event {
+    background-color: var(--violet2) !important; 
+    color: var(--gradient1) !important; 
+    border: none !important;
+    cursor: pointer;
+}
+
+.button-container {
+    display: flex;
+    gap: 10px; 
+}
+
+.updateBtn {
+    width: auto;
+    min-width: 120px; 
+    background: var(--gradient1);
+    border: 1px solid var(--gradient1);
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.updateBtn:hover {
+    background: none;
+    border: 1px solid var(--gradient1);
+    color: var(--gradient1);
+}
+
+.deleteBtn {
+    width: auto;
+    min-width: 120px; 
+    background: #e57373;
+    border: 1px solid #e57373;
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    transition: 0.3s;
+}
+
+.deleteBtn:hover {
+    background: none;
+    border: 1px solid #e57373;
+    color: #e57373;
+}

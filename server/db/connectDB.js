@@ -149,6 +149,14 @@ export const connectDB = async () => {
             )
         `);
         
+        await db.exec(`
+            CREATE TABLE IF NOT EXISTS schedule (
+                scheduleId INTEGER PRIMARY KEY AUTOINCREMENT,
+                eventDate DATETIME NOT NULL,
+                eventName TEXT NOT NULL,
+                eventDescription TEXT NULL
+            )
+        `);        
 
         await db.run("COMMIT");
 
