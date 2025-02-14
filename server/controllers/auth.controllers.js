@@ -330,6 +330,73 @@ export const addMainMenu = async (req, res) => {
     }
 };
 
+export const addSecondMenu = async (req, res) => {
+    try {
+        const { name, sellingPrice } = req.body;
+        let ingredients = [];
+
+        try {
+            ingredients = JSON.parse(req.body.ingredients || "[]");
+        } catch (error) {
+            return res.status(400).json({ success: false, message: "Invalid ingredients format." });
+        }
+
+        const canteenId = 2;
+        const picture = req.file ? `/uploads/${req.file.filename}` : null;
+
+        if (!name || !picture || !sellingPrice || ingredients.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required, including at least one ingredient."
+            });
+        }
+
+        let db;
+        try {
+            db = await connectDB();
+
+            const result = await db.run(
+                "INSERT INTO menu (name, picture, sellingPrice, canteenId) VALUES (?, ?, ?, ?)",
+                [name, picture, sellingPrice, canteenId]
+            );
+
+            const menuId = result.lastID;
+
+            const ingredientInsertPromises = ingredients.map(({ ingredient, quantity, cost }) => {
+                return db.run(
+                    "INSERT INTO ingredients (menuId, ingredient, quantity, cost) VALUES (?, ?, ?, ?)",
+                    [menuId, ingredient, quantity, cost]
+                );
+            });
+
+            await Promise.all(ingredientInsertPromises);
+
+            res.status(201).json({
+                success: true,
+                message: "Menu added successfully!",
+                menuId: menuId
+            });
+
+        } catch (error) {
+            console.error("Error adding menu:", error);
+            res.status(500).json({
+                success: false,
+                message: "Failed to add menu."
+            });
+        } finally {
+            if (db) {
+                await db.close();
+            }
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An unexpected error occurred",
+            error: error.message
+        });
+    }
+};
+
 export const addInventory = async (req, res) => {
     const { productName, quantity, unit } = req.body;
     const { stallId } = req.params; 
@@ -679,13 +746,14 @@ export const viewMenu = async (req, res) => {
     let db;
     try {
         db = await connectDB();
-        const baseUrl = "http://localhost:3000"; // Ensure this matches your backend URL
+        const baseUrl = "http://localhost:3000";  
 
         const menuWithIngredients = await db.all(`
             SELECT m.menuId, m.name, m.picture, m.sellingPrice, 
                    i.ingredientId, i.ingredient, i.quantity, i.cost
             FROM menu m
             LEFT JOIN ingredients i ON m.menuId = i.menuId
+            WHERE m.canteenId = 1
         `);
 
         const menuMap = {};
@@ -694,7 +762,7 @@ export const viewMenu = async (req, res) => {
                 menuMap[row.menuId] = {
                     menuId: row.menuId,
                     name: row.name,
-                    picture: row.picture ? `${baseUrl}${row.picture}` : null, // Convert to full URL
+                    picture: row.picture ? `${baseUrl}${row.picture}` : null, 
                     sellingPrice: row.sellingPrice,
                     ingredients: []
                 };
@@ -727,7 +795,59 @@ export const viewMenu = async (req, res) => {
     }
 };
 
- 
+export const viewSecondMenu = async (req, res) => {
+    let db;
+    try {
+        db = await connectDB();
+        const baseUrl = "http://localhost:3000";  
+
+        const menuWithIngredients = await db.all(`
+            SELECT m.menuId, m.name, m.picture, m.sellingPrice, 
+                   i.ingredientId, i.ingredient, i.quantity, i.cost
+            FROM menu m
+            LEFT JOIN ingredients i ON m.menuId = i.menuId
+            WHERE m.canteenId = 2
+        `);
+
+        const menuMap = {};
+        menuWithIngredients.forEach(row => {
+            if (!menuMap[row.menuId]) {
+                menuMap[row.menuId] = {
+                    menuId: row.menuId,
+                    name: row.name,
+                    picture: row.picture ? `${baseUrl}${row.picture}` : null, 
+                    sellingPrice: row.sellingPrice,
+                    ingredients: []
+                };
+            }
+            if (row.ingredientId) { 
+                menuMap[row.menuId].ingredients.push({
+                    ingredientId: row.ingredientId,
+                    ingredient: row.ingredient,
+                    quantity: row.quantity,
+                    cost: row.cost
+                });
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Menu retrieved successfully",
+            menu: Object.values(menuMap)
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the menu",
+            error: error.message
+        });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
+    }
+};
+
 export const viewPurchases = async (req, res) => {
     let db;
     try {

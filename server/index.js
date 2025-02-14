@@ -132,9 +132,24 @@ app.get("/admin/menu/main", async (req, res) => {
 });
 
 
-app.get("/admin/menu/secondary", (req, res) => {
-    res.render("secondMenu", { title: "Scope", styles: ["secondMenu"] });
+app.get("/admin/menu/secondary", async (req, res) => {
+    try {
+        const db = await connectDB();
+        const menus = await db.all("SELECT * FROM menu");
+
+        console.log("Menus retrieved:", menus); 
+
+        res.render("secondMenu", {
+            title: "Scope",
+            styles: ["secondMenu"],
+            menus,
+        });
+    } catch (error) {
+        console.error("Error fetching menus:", error);
+        res.status(500).send("Internal Server Error");
+    }
 });
+
 
 app.get("/admin/staff", (req, res) => {
     res.render("adminStaff", { title: "Scope", styles: ["adminStaff"] });

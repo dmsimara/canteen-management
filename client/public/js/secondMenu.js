@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const resultContainer = document.getElementById("result");
 
     try {
-        const response = await fetch("/api/auth/admin/view/menu/main");
+        const response = await fetch("/api/auth/admin/view/menu/second");
         const data = await response.json();
 
         if (!data.success || !data.menu.length) {
@@ -306,7 +306,7 @@ document.getElementById("deleteButton").addEventListener("click", async function
 
         if (data.success) {
             alert("Menu deleted successfully!");
-            location.reload(); 
+            location.reload();
         } else {
             alert("Failed to delete menu: " + data.message);
         }
@@ -374,7 +374,7 @@ document.getElementById("menuForm").addEventListener("submit", async function (e
     formData.append("ingredients", JSON.stringify(ingredients));
 
     try {
-        const response = await fetch("/api/auth/admin/add/menu", {
+        const response = await fetch("/api/auth/admin/add/second/menu", {
             method: "POST",
             body: formData
         });

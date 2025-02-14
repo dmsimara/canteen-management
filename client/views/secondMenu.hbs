@@ -78,7 +78,7 @@
                             <div class="dropdown">
                                 <button class="btn btn-primary dropdown-toggle" type="button" id="canteenDropdown"
                                     data-bs-toggle="dropdown" aria-expanded="false">
-                                    Main Canteen
+                                    Secondary Canteen
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="canteenDropdown">
                                     <li><a class="dropdown-item" href="/admin/menu/main" data-value="main">Main
@@ -108,7 +108,7 @@
             <div class="modal-dialog modal-dialog-centered modal-md modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <form action="/api/auth/admin/add/menu" method="POST" id="menuForm"
+                        <form action="/api/auth/admin/add/second/menu" method="POST" id="menuForm"
                             enctype="multipart/form-data" style="width: 90%;">
                             <div class="row mb-3">
                                 <div class="col">
@@ -196,6 +196,7 @@
                             Delete
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -251,7 +252,7 @@
     </div>
 </div>
 
-<script src="/js/mainMenu.js"></script>
+<script src="/js/secondMenu.js"></script>
 
 <script>
     document.querySelectorAll(".dropdown-item").forEach(item => {
