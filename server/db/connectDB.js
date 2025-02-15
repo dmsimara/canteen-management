@@ -15,8 +15,6 @@ export const connectDB = async () => {
 
         await db.run("BEGIN TRANSACTION");
 
-        await db.exec("DROP TABLE IF EXISTS inventory_new;");
-
         await db.exec(`
             CREATE TABLE IF NOT EXISTS users (
                 adminId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +78,7 @@ export const connectDB = async () => {
         `);
 
         await db.exec(`
-            CREATE TABLE inventory_new (
+            CREATE TABLE IF NOT EXISTS inventory (
                 inventoryId INTEGER PRIMARY KEY AUTOINCREMENT,
                 productName TEXT NOT NULL,
                 quantity INTEGER NOT NULL,
@@ -90,14 +88,6 @@ export const connectDB = async () => {
                 FOREIGN KEY (stallId) REFERENCES stalls(stallId) ON DELETE CASCADE
             );
         `);
-
-        await db.exec(`
-            INSERT INTO inventory_new (inventoryId, productName, quantity, unit, stallId, dateAdded)
-            SELECT inventoryId, productName, quantity, unit, stallId, dateAdded FROM inventory;
-        `);
-
-        await db.exec("DROP TABLE inventory;");
-        await db.exec("ALTER TABLE inventory_new RENAME TO inventory;");
 
         await db.exec(`
             CREATE TABLE IF NOT EXISTS sales_reports (

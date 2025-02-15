@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // adding a new schedule
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("purchaseForm");
+    const form = document.getElementById("scheduleForm");
 
     form.addEventListener("submit", async function (event) {
         event.preventDefault();  

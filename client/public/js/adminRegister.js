@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (response.ok) {
                 alert(data.message);
-                window.location.href = "/admin/login";
+                window.location.href = "/";
             } else {
                 errorMessageDiv.textContent = data.message || "Registration failed. Please try again.";
             }

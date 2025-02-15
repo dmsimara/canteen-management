@@ -44,7 +44,7 @@ export const adminRegister = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Admin registered successfully",
+            message: "Admin registered successfully!",
             admin: {
                 adminEmail,
                 adminFirstName,
@@ -96,7 +96,7 @@ export const staffRegister = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Staff registered successfully",
+            message: "Staff registered successfully!",
             staff: {
                 staffEmail,
                 staffFirstName,
@@ -142,7 +142,7 @@ export const adminLogin = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Admin logged in successfully",
+            message: "Admin logged in successfully!",
             admin: {
                 adminEmail: admin.adminEmail,
                 adminFirstName: admin.adminFirstName,
@@ -186,7 +186,7 @@ export const staffLogin = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Staff logged in successfully",
+            message: "Staff logged in successfully!",
             admin: {
                 staffEmail: staff.staffEmail,
                 staffFirstName: staff.staffFirstName,
@@ -207,7 +207,7 @@ export const adminLogout = async (req, res) => {
     res.clearCookie("token");
     res.status(200).json({
         success: true,
-        message: "Admin logged out successfully"
+        message: "Admin logged out successfully!"
     });
 };
 
@@ -240,7 +240,7 @@ export const addSchedule = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Schedule added successfully",
+            message: "Schedule added successfully!",
             schedule: {
                 scheduleId: schedule.lastID,
                 eventDate,
@@ -282,7 +282,7 @@ export const addPurchase = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Purchase added successfully",
+            message: "Purchase added successfully!",
             purchase: {
                 productId: product.lastID,
                 productName,
@@ -463,7 +463,7 @@ export const addInventory = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Inventory added successfully",
+            message: "Inventory added successfully!",
             inventory: {
                 inventoryId: product.lastID,
                 productName,
@@ -506,7 +506,7 @@ export const addSales = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Sales added successfully",
+            message: "Sales added successfully!",
             sales: {
                 reportId: sales.lastID,
                 salesDate,
@@ -548,7 +548,7 @@ export const addStallA = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Stall added successfully",
+            message: "Stall added successfully!",
             stall: {
                 stallId: result.lastID,  
                 stallName,
@@ -587,7 +587,7 @@ export const addStallB = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Stall added successfully",
+            message: "Stall added successfully!",
             stall: {
                 stallId: result.lastID,  
                 stallName,
@@ -627,7 +627,7 @@ export const deleteSchedule = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Schedule deleted successfully"
+            message: "Schedule deleted successfully!"
         });
     } catch (error) {
         res.status(400).json({
@@ -658,7 +658,7 @@ export const deleteMenu = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Menu deleted successfully"
+            message: "Menu deleted successfully!"
         });
     } catch (error) {
         res.status(400).json({
@@ -689,7 +689,7 @@ export const deletePurchase = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Purchase deleted successfully"
+            message: "Purchase deleted successfully!"
         });
     } catch (error) {
         res.status(500).json({
@@ -765,7 +765,7 @@ export const deleteStall = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Stall deleted successfully"
+            message: "Stall deleted successfully!"
         });
     } catch (error) {
         res.status(500).json({
@@ -800,7 +800,7 @@ export const deleteInventory = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Inventory item deleted successfully"
+            message: "Inventory item deleted successfully!"
         });
     } catch (error) {
         res.status(500).json({
@@ -852,7 +852,7 @@ export const viewMenu = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Menu retrieved successfully",
+            message: "Menu retrieved successfully!",
             menu: Object.values(menuMap)
         });
     } catch (error) {
@@ -1158,7 +1158,7 @@ export const updateMenu = async (req, res) => {
             }
         }
 
-        res.status(200).json({ success: true, message: "Menu updated successfully" });
+        res.status(200).json({ success: true, message: "Menu updated successfully!" });
 
     } catch (error) {
         console.error("Error updating menu:", error);
@@ -1194,7 +1194,7 @@ export const updateSchedule = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Schedule updated successfully",
+            message: "Schedule updated successfully!",
             updatedSchedule: {
                 scheduleId,
                 eventName,
@@ -1245,7 +1245,7 @@ export const updateSales = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Sale report updated successfully",
+            message: "Sale report updated successfully!",
             updatedSale: {
                 reportId,
                 salesDate,
@@ -1301,7 +1301,7 @@ export const updateInventory = async (req, res) => {
 
         res.json({
             success: true,
-            message: "Inventory updated successfully",
+            message: "Inventory updated successfully!",
             updatedInventory: {
                 inventoryId,
                 productName,
