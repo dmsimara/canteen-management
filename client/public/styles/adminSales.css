@@ -112,6 +112,8 @@ a.sidebar-link:hover {
     display: flex;
     justify-content: center;   
     align-items: center;
+    margin-top: auto;  
+    padding: 20px;
 }
 
 .profile-container {
@@ -141,7 +143,7 @@ a.sidebar-link:hover {
     display: flex;
     align-items: center;
     cursor: pointer;
-    padding: 5px 20px;
+    padding: 5px 50px;
     border-radius: 15px;
     transition: opacity 0.3s;
 }
@@ -462,4 +464,30 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.pagination-container button {
+    background-color: var(--gradient1); 
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.pagination-container button:hover {
+    background-color: var(--gradient2); 
+}
+
+.pagination-container button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }

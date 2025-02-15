@@ -77,21 +77,45 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener("DOMContentLoaded", async () => {
     const resultsTable = document.getElementById("results");
     const noPurchasesRow = document.getElementById("no-purchases");
+    const paginationContainer = document.createElement("div");
 
-    try {
-        const response = await fetch("/api/auth/admin/view/sales");
-        const data = await response.json();
+    paginationContainer.classList.add("pagination-container", "text-center", "mt-3");
+    document.querySelector(".table-container").appendChild(paginationContainer);
 
-        if (!data.success || !data.sales.length) {
+    let currentPage = 1;
+    const rowsPerPage = 6;
+    let salesData = [];
+
+    async function loadData() {
+        try {
+            const response = await fetch("/api/auth/admin/view/sales");
+            const data = await response.json();
+
+            if (!data.success || data.sales.length === 0) {
+                noPurchasesRow.style.display = "table-row";  
+                paginationContainer.innerHTML = ""; 
+                return;
+            }
+
+            salesData = data.sales.sort((a, b) => new Date(b.salesDate) - new Date(a.salesDate));
+            noPurchasesRow.style.display = "none";
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        } catch (error) {
+            console.error("Error fetching sales:", error);
             noPurchasesRow.style.display = "table-row";  
-            return;
         }
+    }
 
-        resultsTable.innerHTML = "";  
+    function renderTable() {
+        resultsTable.innerHTML = "";
 
-        data.sales.sort((a, b) => new Date(b.salesDate) - new Date(a.salesDate));
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const paginatedSales = salesData.slice(startIndex, endIndex);
 
-        data.sales.forEach((sale) => {
+        paginatedSales.forEach((sale) => {
             const row = document.createElement("tr");
 
             row.innerHTML = `
@@ -109,10 +133,43 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             resultsTable.appendChild(row);
         });
-    } catch (error) {
-        console.error("Error fetching sales:", error);
-        noPurchasesRow.style.display = "table-row";  
     }
+
+    function renderPagination() {
+        paginationContainer.innerHTML = "";
+
+        const totalPages = Math.ceil(salesData.length / rowsPerPage);
+        if (totalPages <= 1) return;
+
+        const prevButton = document.createElement("button");
+        prevButton.textContent = "Previous";
+        prevButton.classList.add("btn", "btn-danger", "me-2");
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+                renderPagination();
+            }
+        });
+
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "Next";
+        nextButton.classList.add("btn", "btn-success");
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener("click", () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+                renderPagination();
+            }
+        });
+
+        paginationContainer.appendChild(prevButton);
+        paginationContainer.appendChild(nextButton);
+    }
+
+    loadData();
 });
 
 

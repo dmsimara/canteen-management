@@ -32,16 +32,9 @@ app.use(express.static(path.join(__dirname, "../client/public")));
 console.log("Serving static files from:", path.join(__dirname, "uploads"));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
+
 app.get("/", (req, res) => {
-    res.render("home", { title: "Scope", styles: ["home"] });
-});
-
-app.get("/admin/login", (req, res) => {
     res.render("adminLogin", { title: "Scope", styles: ["adminLogin"] });
-})
-
-app.get("/staff/login", (req, res) => {
-    res.render("staffLogin", { title: "Scope", styles: ["staffLogin"] });
 })
 
 app.get("/admin/register", (req, res) => {

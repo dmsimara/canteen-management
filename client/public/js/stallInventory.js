@@ -122,59 +122,132 @@ function getStallIdFromPath() {
     return pathSegments[pathSegments.length - 1];  
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.querySelector('#search');
-    const resultsBody = document.querySelector('#results');
-    const noPurchasesRow = document.createElement('tr'); 
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.querySelector("#search");
+    const resultsBody = document.querySelector("#results");
+    const paginationContainer = document.createElement("div"); 
+    paginationContainer.classList.add("pagination-container");
+    resultsBody.parentElement.appendChild(paginationContainer);
 
+    const noPurchasesRow = document.createElement("tr");
     noPurchasesRow.innerHTML = `<td colspan="7" class="text-center">No inventories found</td>`;
     noPurchasesRow.id = "no-purchases";
-    noPurchasesRow.style.display = "none"; 
-
+    noPurchasesRow.style.display = "none";
     resultsBody.appendChild(noPurchasesRow);
 
-    async function loadData(query = '') {
-        const stallId = getStallIdFromPath(); 
-    
-        if (!stallId || isNaN(stallId)) { 
+    let inventories = []; 
+    let currentPage = 1;
+    const rowsPerPage = 6; 
+
+    async function loadData(query = "") {
+        const stallId = getStallIdFromPath();
+
+        if (!stallId || isNaN(stallId)) {
             console.error("❌ Error: stallId is missing or invalid in the URL.");
             return;
         }
-    
+
         try {
-            const response = await fetch(`/api/auth/admin/search/inventory?q=${encodeURIComponent(query)}&stallId=${stallId}`);
+            const response = await fetch(
+                `/api/auth/admin/search/inventory?q=${encodeURIComponent(query)}&stallId=${stallId}`
+            );
             const data = await response.json();
-    
-            resultsBody.innerHTML = ''; 
-    
+
             if (data.success && data.inventories.length > 0) {
-                noPurchasesRow.style.display = "none"; 
-    
-                data.inventories.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
-    
-                data.inventories.forEach(inventory => {
-                    const row = `
-                        <tr data-id="${inventory.inventoryId}">
-                            <td>${inventory.dateAdded}</td>
-                            <td>${inventory.productName}</td>
-                            <td>${inventory.quantity}</td>
-                            <td>${inventory.unit}</td>
-                            <td class="text-end">
-                                <button class="btn btn-warning edit-btn" data-id="${inventory.inventoryId}">Edit</button>
-                                <button class="btn btn-danger delete-btn" data-id="${inventory.inventoryId}">Delete</button>
-                            </td>
-                        </tr>
-                    `;
-                    resultsBody.insertAdjacentHTML("beforeend", row);
-                });
+                inventories = data.inventories.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+                noPurchasesRow.style.display = "none";
+                currentPage = 1; 
+                renderPage(currentPage);
             } else {
-                resultsBody.appendChild(noPurchasesRow);
-                noPurchasesRow.style.display = "table-row"; 
+                inventories = [];
+                renderPage(currentPage);
             }
         } catch (error) {
-            console.error('Error fetching search results:', error);
+            console.error("Error fetching search results:", error);
         }
-    }    
+    }
+
+    function renderPage(page) {
+        resultsBody.innerHTML = "";
+        const startIndex = (page - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const pageItems = inventories.slice(startIndex, endIndex);
+
+        if (pageItems.length > 0) {
+            pageItems.forEach((inventory) => {
+                const isLowStock = checkLowStock(inventory.quantity, inventory.unit);
+                const row = `
+                    <tr data-id="${inventory.inventoryId}" class="${isLowStock ? 'low-stock' : ''}">
+                        <td>${inventory.dateAdded}</td>
+                        <td>${inventory.productName}</td>
+                        <td>${inventory.quantity}</td>
+                        <td>${inventory.unit}</td>
+                        <td class="text-end">
+                            <button class="btn btn-warning edit-btn" data-id="${inventory.inventoryId}">Edit</button>
+                            <button class="btn btn-danger delete-btn" data-id="${inventory.inventoryId}">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                resultsBody.insertAdjacentHTML("beforeend", row);
+            });
+        } else {
+            resultsBody.appendChild(noPurchasesRow);
+            noPurchasesRow.style.display = "table-row";
+        }
+
+        updatePaginationButtons();
+    }
+
+    function updatePaginationButtons() {
+        paginationContainer.innerHTML = "";
+
+        if (inventories.length <= rowsPerPage) return; 
+
+        const totalPages = Math.ceil(inventories.length / rowsPerPage);
+
+        const prevButton = document.createElement("button");
+        prevButton.textContent = "Previous";
+        prevButton.classList.add("btn", "btn-secondary", "me-2");
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage(currentPage);
+            }
+        });
+
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "Next";
+        nextButton.classList.add("btn", "btn-secondary");
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener("click", () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderPage(currentPage);
+            }
+        });
+
+        paginationContainer.appendChild(prevButton);
+        paginationContainer.appendChild(nextButton);
+    }
+
+    function checkLowStock(quantity, unit) {
+        const thresholds = {
+            pieces: 10,
+            kilogram: 1,
+            gram: 500,
+            pack: 2,
+            box: 1
+        };
+        return quantity < (thresholds[unit.toLowerCase()] || Infinity);
+    }
+
+    resultsBody.addEventListener("click", (event) => {
+        if (event.target.classList.contains("delete-btn")) {
+            const inventoryId = event.target.getAttribute("data-id");
+            deletePurchase(inventoryId);
+        }
+    });
 
     async function deletePurchase(inventoryId) {
         if (!confirm("Are you sure you want to delete this record?")) return;
@@ -188,14 +261,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (response.ok) {
-                document.querySelector(`tr[data-id="${inventoryId}"]`)?.remove();
+                inventories = inventories.filter((item) => item.inventoryId !== parseInt(inventoryId));
+                renderPage(currentPage);
 
-                if (resultsBody.querySelectorAll("tr[data-id]").length === 0) {
+                if (inventories.length === 0) {
                     noPurchasesRow.style.display = "table-row";
-                    
                     setTimeout(() => {
                         location.reload();
-                    }, 50);  
+                    }, 50);
                 }
             } else {
                 alert(data.message || "Failed to delete record");
@@ -205,14 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    resultsBody.addEventListener("click", (event) => {
-        if (event.target.classList.contains("delete-btn")) {
-            const inventoryId = event.target.getAttribute("data-id");
-            deletePurchase(inventoryId);
-        }
-    });
-
-    searchInput.addEventListener('input', () => {
+    searchInput.addEventListener("input", () => {
         const query = searchInput.value.trim();
         loadData(query);
     });
