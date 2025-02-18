@@ -18,12 +18,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(adminEmail)) {
-            errorMessageDiv.textContent = "Invalid email format";
+            swal({
+                title: "Invalid Email",
+                text: "Please provide a valid email format.",
+                icon: "error",
+                button: "OK",
+            });
             return;
         }
 
         if (adminPassword !== confirmPassword) {
-            errorMessageDiv.textContent = "Passwords do not match. Please try again.";
+            swal({
+                title: "Password Mismatch",
+                text: "Passwords do not match. Please try again.",
+                icon: "error",
+                button: "OK",
+            });
             return;
         }
 
@@ -45,13 +55,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
-                window.location.href = "/";
+                swal({
+                    title: "Registration Successful!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.href = "/"; 
+                });
             } else {
-                errorMessageDiv.textContent = data.message || "Registration failed. Please try again.";
+                swal({
+                    title: "Error",
+                    text: data.message || "Registration failed. Please try again.",
+                    icon: "error",
+                    button: "OK",
+                });
             }
         } catch (error) {
-            errorMessageDiv.textContent = "An error occurred. Please try again later.";
+            swal({
+                title: "Oops!",
+                text: "An error occurred. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
         } finally {
             submitButton.disabled = false;
