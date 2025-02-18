@@ -19,18 +19,35 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message); 
-                window.location.href = "/admin/dashboard"; 
+                swal({
+                    title: "Success!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.href = "/admin/dashboard"; 
+                });
             } else {
-                alert(data.message || "Login failed. Please try again.");
+                swal({
+                    title: "Error",
+                    text: data.message || "Login failed. Please try again.",
+                    icon: "error",
+                    button: "Try Again",
+                });
                 console.error("Login error data:", data);
             }
         } catch (error) {
-            alert("An error occurred. Please try again later.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
         }
     });
 });
+
 
 document.getElementById('togglePassword').addEventListener('click', function () {
     const passwordField = document.getElementById('adminPassword');
