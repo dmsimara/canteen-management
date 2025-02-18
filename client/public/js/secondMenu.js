@@ -24,12 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logoutButton");
 
     logoutButton.addEventListener("click", async () => {
-        const isConfirmed = confirm("Are you sure you want to log out?");
-        
+        const isConfirmed = await swal({
+            title: "Are you sure?",
+            text: "Do you want to log out?",
+            icon: "warning",
+            buttons: ["Cancel", "Log Out"],
+            dangerMode: true,
+        });
+
         if (!isConfirmed) {
-            return;
+            return; 
         }
-        
+
         try {
             const response = await fetch("/api/auth/admin/logout", {
                 method: "POST",
@@ -41,13 +47,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message); 
-                window.location.href = "/"; 
+                swal({
+                    title: "Logged out successfully!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.href = "/"; 
+                });
             } else {
-                alert(data.message || "Logout failed. Please try again.");
+                swal({
+                    title: "Error",
+                    text: data.message || "Logout failed. Please try again.",
+                    icon: "error",
+                    button: "Try Again",
+                });
             }
         } catch (error) {
-            alert("An error occurred during logout. Please try again later.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred during logout. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
         }
     });
@@ -257,7 +279,7 @@ document.getElementById("editMenuForm").addEventListener("submit", async functio
 
     const pictureInput = document.getElementById("picture");
     if (pictureInput.files.length > 0) {
-        formData.append("picture", pictureInput.files[0]); 
+        formData.append("picture", pictureInput.files[0]);
     }
 
     console.log("FormData being sent:");
@@ -275,14 +297,30 @@ document.getElementById("editMenuForm").addEventListener("submit", async functio
         console.log("Response from server:", result);
 
         if (result.success) {
-            alert("Menu updated successfully!");
-            location.reload();  
+            Swal.fire({
+                icon: 'success',
+                title: 'Menu updated successfully!',
+                text: 'The menu has been updated and changes are saved.',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                location.reload();
+            });
         } else {
-            alert("Error: " + result.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: result.message || 'Something went wrong. Please try again.',
+                confirmButtonText: 'OK'
+            });
         }
     } catch (error) {
         console.error("Update failed:", error);
-        alert("An error occurred while updating the menu.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'An error occurred while updating the menu. Please try again.',
+            confirmButtonText: 'OK'
+        });
     }
 });
 
@@ -290,12 +328,25 @@ document.getElementById("deleteButton").addEventListener("click", async function
     const menuId = this.getAttribute("data-menu-id");
 
     if (!menuId) {
-        alert("Error: No menu selected for deletion.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'No menu selected for deletion.',
+            confirmButtonText: 'OK'
+        });
         return;
     }
 
-    const isConfirmed = confirm("Are you sure you want to delete this menu?");
-    if (!isConfirmed) return;
+    const isConfirmed = await Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to delete this menu? This action cannot be undone.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    });
+
+    if (!isConfirmed.isConfirmed) return; 
 
     try {
         const response = await fetch(`/api/auth/admin/menu/${menuId}`, {
@@ -305,17 +356,32 @@ document.getElementById("deleteButton").addEventListener("click", async function
         const data = await response.json();
 
         if (data.success) {
-            alert("Menu deleted successfully!");
-            location.reload();
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted!',
+                text: 'Menu deleted successfully.',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                location.reload(); 
+            });
         } else {
-            alert("Failed to delete menu: " + data.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed!',
+                text: 'Failed to delete menu: ' + data.message,
+                confirmButtonText: 'OK'
+            });
         }
     } catch (error) {
         console.error("Error deleting menu:", error);
-        alert("An error occurred while deleting the menu.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'An error occurred while deleting the menu.',
+            confirmButtonText: 'OK'
+        });
     }
 });
-
 
 async function fetchMenuDetails(menuId) {
     try {
@@ -323,7 +389,12 @@ async function fetchMenuDetails(menuId) {
         const data = await response.json();
 
         if (!data.success) {
-            alert("Menu details not found!");
+            Swal.fire({
+                icon: 'error',
+                title: 'Menu not found!',
+                text: 'The details for this menu could not be found.',
+                confirmButtonText: 'OK'
+            });
             return;
         }
 
@@ -351,7 +422,12 @@ async function fetchMenuDetails(menuId) {
 
     } catch (error) {
         console.error("Error fetching menu details:", error);
-        alert("Failed to load menu details.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed to load menu details!',
+            text: 'An error occurred while fetching the menu details.',
+            confirmButtonText: 'OK'
+        });
     }
 }
 
@@ -381,14 +457,30 @@ document.getElementById("menuForm").addEventListener("submit", async function (e
 
         const result = await response.json();
         if (result.success) {
-            alert("Menu added successfully!");
-            location.reload();
+            Swal.fire({
+                icon: 'success',
+                title: 'Menu added successfully!',
+                text: 'The menu has been successfully added.',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                location.reload();
+            });
         } else {
-            alert(result.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error adding menu!',
+                text: result.message || 'Something went wrong. Please try again.',
+                confirmButtonText: 'OK'
+            });
         }
     } catch (error) {
         console.error("Error:", error);
-        alert("Failed to add menu.");
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed to add menu!',
+            text: 'An error occurred while adding the menu.',
+            confirmButtonText: 'OK'
+        });
     }
 });
 
