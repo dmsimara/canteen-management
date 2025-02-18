@@ -24,12 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logoutButton");
 
     logoutButton.addEventListener("click", async () => {
-        const isConfirmed = confirm("Are you sure you want to log out?");
-        
+        const isConfirmed = await swal({
+            title: "Are you sure?",
+            text: "Do you want to log out?",
+            icon: "warning",
+            buttons: ["Cancel", "Log Out"],
+            dangerMode: true,
+        });
+
         if (!isConfirmed) {
-            return;
+            return; 
         }
-        
+
         try {
             const response = await fetch("/api/auth/admin/logout", {
                 method: "POST",
@@ -41,13 +47,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message); 
-                window.location.href = "/"; 
+                swal({
+                    title: "Logged out successfully!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.href = "/"; 
+                });
             } else {
-                alert(data.message || "Logout failed. Please try again.");
+                swal({
+                    title: "Error",
+                    text: data.message || "Logout failed. Please try again.",
+                    icon: "error",
+                    button: "Try Again",
+                });
             }
         } catch (error) {
-            alert("An error occurred during logout. Please try again later.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred during logout. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
         }
     });
@@ -177,7 +199,15 @@ document.getElementById("results").addEventListener("click", async (event) => {
     if (event.target.classList.contains("delete-btn")) {
         const reportId = event.target.dataset.id;
 
-        if (!confirm("Are you sure you want to delete this sales report?")) return;
+        const isConfirmed = await swal({
+            title: "Are you sure?",
+            text: "Do you really want to delete this sales report?",
+            icon: "warning",
+            buttons: ["Cancel", "Yes, delete it!"],
+            dangerMode: true,
+        });
+
+        if (!isConfirmed) return;
 
         try {
             const response = await fetch(`/api/auth/admin/sales/${reportId}`, {
@@ -187,13 +217,29 @@ document.getElementById("results").addEventListener("click", async (event) => {
             const result = await response.json();
 
             if (result.success) {
-                alert("Sales report deleted successfully!");
-                location.reload();  
+                swal({
+                    title: "Deleted!",
+                    text: "Sales report deleted successfully.",
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    location.reload(); 
+                });
             } else {
-                alert(result.message);
+                swal({
+                    title: "Error",
+                    text: result.message || "An error occurred while deleting the sales report.",
+                    icon: "error",
+                    button: "OK",
+                });
             }
         } catch (error) {
-            alert("An error occurred while deleting the sales report.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred while deleting the sales report.",
+                icon: "error",
+                button: "OK",
+            });
             console.error(error);
         }
     }
@@ -254,14 +300,30 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await response.json();
 
             if (result.success) {
-                alert("Sales record added successfully!");
-                window.location.reload(); 
+                swal({
+                    title: "Success!",
+                    text: "Sales record added successfully!",
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.reload();  
+                });
             } else {
-                alert(`Error: ${result.message}`);
+                swal({
+                    title: "Error",
+                    text: `Error: ${result.message}`,
+                    icon: "error",
+                    button: "OK",
+                });
             }
         } catch (error) {
+            swal({
+                title: "Oops!",
+                text: "Failed to add sales. Please try again.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error adding sales:", error);
-            alert("Failed to add sales. Please try again.");
         }
     });
 });
@@ -314,69 +376,100 @@ document.addEventListener("DOMContentLoaded", function () {
         if (event.target.classList.contains("edit-btn")) {
             const reportId = event.target.getAttribute("data-id");
             if (!reportId) return;
-
+    
             try {
                 const response = await fetch(`/api/auth/admin/sales/edit/${reportId}`);
                 const data = await response.json();
-
+    
                 console.log("API Response:", data); 
-
+    
                 if (data.success && data.sale) {
                     document.querySelector("#editReportId").value = reportId;
                     document.querySelector("#editSalesDate").value = data.sale.salesDate || "";
                     document.querySelector("#editCost").value = data.sale.cost || "";
                     document.querySelector("#editCash").value = data.sale.cash || "";
                     document.querySelector("#editCanteenId").value = data.sale.canteenId || "";
-
+    
                     await fetchStallsForEdit(data.sale.canteenId, data.sale.stallId);
-
+    
                     editModal.show();
                 } else {
-                    alert("Error: Sales record not found.");
+                    swal({
+                        title: "Error",
+                        text: "Sales record not found.",
+                        icon: "error",
+                        button: "OK",
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching sales data:", error);
-                alert("Failed to load sales details.");
+                swal({
+                    title: "Oops!",
+                    text: "Failed to load sales details.",
+                    icon: "error",
+                    button: "OK",
+                });
             }
         }
-    });
+    });    
 
     editForm.addEventListener("submit", async (event) => {
         event.preventDefault();
-
+    
         const reportId = document.querySelector("#editReportId").value;
         const salesDate = document.querySelector("#editSalesDate").value;
         const cost = document.querySelector("#editCost").value.trim();
         const cash = document.querySelector("#editCash").value.trim();
         const canteenId = document.querySelector("#editCanteenId").value;
         const stallId = document.querySelector("#editStallId").value;
-
+    
         if (!salesDate || !cost || !cash || !canteenId || !stallId) {
-            alert("Please fill in all fields.");
+            swal({
+                title: "Error",
+                text: "Please fill in all fields.",
+                icon: "error",
+                button: "OK",
+            });
             return;
         }
-
+    
         try {
             const response = await fetch(`/api/auth/admin/sales/update/${reportId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ salesDate, cost, cash, canteenId, stallId })
             });
-
+    
             const result = await response.json();
-
+    
             if (result.success) {
-                alert("Sales record updated successfully!");
-                editModal.hide();
-                location.reload();
+                swal({
+                    title: "Success",
+                    text: "Sales record updated successfully!",
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    editModal.hide();
+                    location.reload();
+                });
             } else {
-                alert(result.message || "Failed to update sales record.");
+                swal({
+                    title: "Error",
+                    text: result.message || "Failed to update sales record.",
+                    icon: "error",
+                    button: "OK",
+                });
             }
         } catch (error) {
             console.error("Error updating sales record:", error);
-            alert("An error occurred while updating.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred while updating.",
+                icon: "error",
+                button: "OK",
+            });
         }
-    });
+    });    
 
     document.querySelector("#editCanteenId").addEventListener("change", async function () {
         const selectedCanteenId = this.value;
