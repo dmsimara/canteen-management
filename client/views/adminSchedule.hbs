@@ -37,13 +37,13 @@
             <li id="schedule" class="sidebar-item">
                 <a href="/admin/schedule" class="sidebar-link">
                     <i class="material-icons">event</i>
-                    <span>Schedule</span>
+                    <span>Event Schedule</span>
                 </a>
             </li>
             <li id="menu" class="sidebar-item">
                 <a href="/admin/menu" class="sidebar-link">
                     <i class="material-icons">restaurant</i>
-                    <span>Menu</span>
+                    <span>Products</span>
                 </a>
             </li>
         </ul>
@@ -104,9 +104,10 @@
 
                             <div class="mb-6">
                                 <label for="eventDescription" class="form-label">Event Description</label>
-                                <input type="datetime" class="form-control" id="eventDescription"
-                                    name="eventDescription">
+                                <textarea class="form-control" id="eventDescription" name="eventDescription" rows="4"
+                                    required></textarea>
                             </div>
+
 
                             <div class="button-container">
                                 <button type="submit" class="btn btn-primary">Add Schedule</button>
@@ -139,9 +140,10 @@
 
                             <div class="mb-6">
                                 <label for="editEventDescription" class="form-label">Event Description</label>
-                                <input type="text" class="form-control" id="editEventDescription"
-                                    name="eventDescription" value="">
+                                <textarea class="form-control" id="editEventDescription" name="eventDescription"
+                                    rows="4" required></textarea>
                             </div>
+
 
                             <div class="button-container">
                                 <button type="submit" class="btn btn-primary updateBtn">Update</button>
@@ -158,6 +160,8 @@
 </div>
 
 <script src="/js/adminSchedule.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.5.1"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', async function () {
         var calendarEl = document.querySelector('.calendar-container');
@@ -235,7 +239,7 @@
                 const eventNameInput = document.getElementById('editEventName');
                 const eventDateInput = document.getElementById('editEventDate');
                 const eventDescriptionInput = document.getElementById('editEventDescription');
-                const scheduleIdInput = document.getElementById('editScheduleId');  
+                const scheduleIdInput = document.getElementById('editScheduleId');
 
                 if (!eventNameInput || !eventDateInput || !eventDescriptionInput || !scheduleIdInput) {
                     console.error("One or more form inputs not found!");
@@ -266,46 +270,63 @@
         function adjustCalendarSize() {
             setTimeout(() => {
                 calendar.updateSize();
-            }, 50); 
+            }, 50);
         }
 
         const sidebar = document.querySelector('#sidebar');
         if (sidebar) {
-            sidebar.addEventListener('transitionend', adjustCalendarSize); 
+            sidebar.addEventListener('transitionend', adjustCalendarSize);
         }
 
         window.addEventListener('resize', adjustCalendarSize);
 
         document.getElementById('editScheduleForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const scheduleId = document.getElementById('editScheduleId').value;
+    e.preventDefault(); 
+    const scheduleId = document.getElementById('editScheduleId').value;
 
-            if (!scheduleId) {
-                console.error("Error: Schedule ID is missing!");
-                return;
-            }
+    if (!scheduleId) {
+        console.error("Error: Schedule ID is missing!");
+        return;
+    }
 
-            const formData = new FormData(this);
-            const updatedData = Object.fromEntries(formData);
+    const formData = new FormData(this);
+    const updatedData = Object.fromEntries(formData);
 
-            try {
-                const response = await fetch(`/api/auth/admin/schedule/update/${scheduleId}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    alert('Schedule updated successfully!');
-                    calendar.refetchEvents();
-                    bootstrap.Modal.getInstance(document.getElementById('editScheduleModal')).hide();
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) {
-                console.error("Error updating schedule:", error);
-            }
+    try {
+        const response = await fetch(`/api/auth/admin/schedule/update/${scheduleId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
         });
+
+        const result = await response.json();
+        if (result.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Schedule updated successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                calendar.refetchEvents();
+                bootstrap.Modal.getInstance(document.getElementById('editScheduleModal')).hide();
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: result.message,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Error updating schedule: ' + error,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+});
+
     });
 </script>
