@@ -24,12 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logoutButton");
 
     logoutButton.addEventListener("click", async () => {
-        const isConfirmed = confirm("Are you sure you want to log out?");
-        
+        const isConfirmed = await swal({
+            title: "Are you sure?",
+            text: "Do you want to log out?",
+            icon: "warning",
+            buttons: ["Cancel", "Log Out"],
+            dangerMode: true,
+        });
+
         if (!isConfirmed) {
-            return;
+            return; 
         }
-        
+
         try {
             const response = await fetch("/api/auth/admin/logout", {
                 method: "POST",
@@ -41,13 +47,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message); 
-                window.location.href = "/"; 
+                swal({
+                    title: "Logged out successfully!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.href = "/"; 
+                });
             } else {
-                alert(data.message || "Logout failed. Please try again.");
+                swal({
+                    title: "Error",
+                    text: data.message || "Logout failed. Please try again.",
+                    icon: "error",
+                    button: "Try Again",
+                });
             }
         } catch (error) {
-            alert("An error occurred during logout. Please try again later.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred during logout. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
         }
     });
@@ -117,10 +139,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     async function deleteStall(stallId, stallCard) {
-        if (!confirm("Are you sure you want to delete this stall? This action cannot be undone.")) {
-            return;
-        }
-
+        const confirmation = await swal({
+            title: "Are you sure?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        });
+    
+        if (!confirmation) return; 
+    
         try {
             const response = await fetch(`/api/auth/admin/inventory/stall/${stallId}`, {
                 method: "DELETE",
@@ -128,20 +156,35 @@ document.addEventListener("DOMContentLoaded", async function () {
                     "Content-Type": "application/json"
                 }
             });
-
+    
             const data = await response.json();
-
+    
             if (data.success) {
-                stallCard.remove();
-                alert("Stall deleted successfully!");
+                stallCard.remove();  
+                swal({
+                    title: "Success!",
+                    text: "Stall deleted successfully!",
+                    icon: "success",
+                    button: "OK",
+                });
             } else {
-                alert(data.message); 
+                swal({
+                    title: "Error",
+                    text: data.message || "Failed to delete the stall.",
+                    icon: "error",
+                    button: "OK",
+                });
             }
         } catch (error) {
             console.error("Error deleting stall:", error);
-            alert("An error occurred while deleting the stall.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred while deleting the stall.",
+                icon: "error",
+                button: "OK",
+            });
         }
-    }
+    }    
 
     function attachDeleteEventListeners() {
         document.querySelectorAll(".delete-stall").forEach(button => {
@@ -158,7 +201,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("stallForm");  
+    const form = document.getElementById("stallForm");
     const submitButton = form.querySelector("button[type='submit']");
 
     form.addEventListener("submit", async (event) => {
@@ -166,6 +209,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const stallName = document.getElementById("stallName").value.trim();
         const category = document.getElementById("category").value.trim();
+
+        if (!stallName || !category) {
+            swal({
+                title: "Validation Error",
+                text: "Please fill in both stall name and category.",
+                icon: "warning",
+                button: "OK",
+            });
+            return;
+        }
 
         submitButton.disabled = true;
 
@@ -175,21 +228,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     stallName,
-                    category, 
+                    category,
                 }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
-                window.location.reload();
+                swal({
+                    title: "Success!",
+                    text: data.message || "Stall added successfully!",
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
-                alert(data.message || "Failed to add stall. Please try again.");
+                swal({
+                    title: "Error",
+                    text: data.message || "Failed to add stall. Please try again.",
+                    icon: "error",
+                    button: "OK",
+                });
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("An error occurred. Please try again later.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
         } finally {
             submitButton.disabled = false;
         }
