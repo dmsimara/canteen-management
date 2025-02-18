@@ -24,12 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logoutButton");
 
     logoutButton.addEventListener("click", async () => {
-        const isConfirmed = confirm("Are you sure you want to log out?");
-        
+        const isConfirmed = await swal({
+            title: "Are you sure?",
+            text: "Do you want to log out?",
+            icon: "warning",
+            buttons: ["Cancel", "Log Out"],
+            dangerMode: true,
+        });
+
         if (!isConfirmed) {
-            return;
+            return; 
         }
-        
+
         try {
             const response = await fetch("/api/auth/admin/logout", {
                 method: "POST",
@@ -41,13 +47,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message); 
-                window.location.href = "/"; 
+                swal({
+                    title: "Logged out successfully!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.href = "/"; 
+                });
             } else {
-                alert(data.message || "Logout failed. Please try again.");
+                swal({
+                    title: "Error",
+                    text: data.message || "Logout failed. Please try again.",
+                    icon: "error",
+                    button: "Try Again",
+                });
             }
         } catch (error) {
-            alert("An error occurred during logout. Please try again later.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred during logout. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
         }
     });
@@ -75,14 +97,14 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("purchaseForm");  
+    const form = document.getElementById("purchaseForm");
     const submitButton = form.querySelector("button[type='submit']");
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const productName = document.getElementById("productName").value.trim();
-        const price = parseFloat(document.getElementById("price").value).toFixed(2);  
+        const price = parseFloat(document.getElementById("price").value).toFixed(2);
         const quantity = parseInt(document.getElementById("quantity").value, 10);
         const MOP = document.getElementById("MOP").value;
         const date = document.getElementById("date").value;
@@ -95,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     productName,
-                    price: parseFloat(price),  
+                    price: parseFloat(price),
                     quantity,
                     MOP,
                     date,
@@ -105,19 +127,37 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
-                window.location.reload();
+                swal({
+                    title: "Success!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.reload(); 
+                });
             } else {
-                alert(data.message || "Failed to add purchase. Please try again.");
+              
+                swal({
+                    title: "Error",
+                    text: data.message || "Failed to add purchase. Please try again.",
+                    icon: "error",
+                    button: "Try Again",
+                });
             }
         } catch (error) {
+            swal({
+                title: "Oops!",
+                text: "An error occurred. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
-            alert("An error occurred. Please try again later.");
         } finally {
             submitButton.disabled = false;
         }
     });
 });
+
 
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.querySelector("#search");
@@ -221,35 +261,68 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     async function deletePurchase(productId) {
-        if (!confirm("Are you sure you want to delete this purchase?")) return;
+        const isConfirmed = await swal({
+            title: "Are you sure?",
+            text: "Do you really want to delete this purchase?",
+            icon: "warning",
+            buttons: ["Cancel", "Delete"],
+            dangerMode: true,
+        });
+    
+        if (!isConfirmed) {
+            return; 
+        }
     
         try {
             const response = await fetch(`/api/auth/admin/purchases/${productId}`, {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
             });
     
             const data = await response.json();
     
             if (response.ok) {
                 purchasesData = purchasesData.filter(purchase => purchase.productId !== parseInt(productId));
-                
+    
                 if (purchasesData.length === 0) {
-                    alert("Purchase deleted successfully!");
-                    location.reload(); 
+                    swal({
+                        title: "Success!",
+                        text: "Purchase deleted successfully!",
+                        icon: "success",
+                        button: "OK",
+                    }).then(() => {
+                        location.reload(); 
+                    });
                     return;
                 }
     
                 renderTable();
                 renderPagination();
-                alert("Purchase deleted successfully!");
+    
+                swal({
+                    title: "Deleted",
+                    text: "Purchase deleted successfully!",
+                    icon: "success",
+                    button: "OK",
+                });
             } else {
-                alert(data.message || "Failed to delete purchase");
+                swal({
+                    title: "Error",
+                    text: data.message || "Failed to delete purchase",
+                    icon: "error",
+                    button: "OK",
+                });
             }
         } catch (error) {
             console.error("Error deleting purchase:", error);
+            swal({
+                title: "Oops!",
+                text: "An error occurred while deleting the purchase. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
         }
-    }
+    }    
     
     resultsBody.addEventListener("click", event => {
         if (event.target.classList.contains("delete-btn")) {
