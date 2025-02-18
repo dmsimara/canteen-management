@@ -24,12 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = document.getElementById("logoutButton");
 
     logoutButton.addEventListener("click", async () => {
-        const isConfirmed = confirm("Are you sure you want to log out?");
-        
+        const isConfirmed = await swal({
+            title: "Are you sure?",
+            text: "Do you want to log out?",
+            icon: "warning",
+            buttons: ["Cancel", "Log Out"],
+            dangerMode: true,
+        });
+
         if (!isConfirmed) {
-            return;
+            return; 
         }
-        
+
         try {
             const response = await fetch("/api/auth/admin/logout", {
                 method: "POST",
@@ -41,13 +47,29 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message); 
-                window.location.href = "/"; 
+                swal({
+                    title: "Logged out successfully!",
+                    text: data.message,
+                    icon: "success",
+                    button: "OK",
+                }).then(() => {
+                    window.location.href = "/"; 
+                });
             } else {
-                alert(data.message || "Logout failed. Please try again.");
+                swal({
+                    title: "Error",
+                    text: data.message || "Logout failed. Please try again.",
+                    icon: "error",
+                    button: "Try Again",
+                });
             }
         } catch (error) {
-            alert("An error occurred during logout. Please try again later.");
+            swal({
+                title: "Oops!",
+                text: "An error occurred during logout. Please try again later.",
+                icon: "error",
+                button: "OK",
+            });
             console.error("Error:", error);
         }
     });
@@ -103,19 +125,36 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
-                window.location.reload();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Record added successfully!',
+                    text: data.message || 'The product record has been added.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.reload(); 
+                });
             } else {
-                alert(data.message || "Failed to add record. Please try again.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to add record!',
+                    text: data.message || 'Please try again.',
+                    confirmButtonText: 'OK'
+                });
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("An error occurred. Please try again later.");
+            Swal.fire({
+                icon: 'error',
+                title: 'An error occurred!',
+                text: 'Something went wrong. Please try again later.',
+                confirmButtonText: 'OK'
+            });
         } finally {
             submitButton.disabled = false;
         }
     });
 });
+
 
 function getStallIdFromPath() {
     const pathSegments = window.location.pathname.split('/');  
@@ -250,20 +289,37 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     async function deletePurchase(inventoryId) {
-        if (!confirm("Are you sure you want to delete this record?")) return;
-
+        const { value: isConfirmed } = await Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to delete this record?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, cancel!',
+            reverseButtons: true
+        });
+    
+        if (!isConfirmed) return;
+    
         try {
             const response = await fetch(`/api/auth/admin/stall/inventory/${inventoryId}`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" }
             });
-
+    
             const data = await response.json();
-
+    
             if (response.ok) {
                 inventories = inventories.filter((item) => item.inventoryId !== parseInt(inventoryId));
                 renderPage(currentPage);
-
+    
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Record deleted successfully!',
+                    text: data.message || 'The record has been deleted.',
+                    confirmButtonText: 'OK'
+                });
+    
                 if (inventories.length === 0) {
                     noPurchasesRow.style.display = "table-row";
                     setTimeout(() => {
@@ -271,12 +327,23 @@ document.addEventListener("DOMContentLoaded", function () {
                     }, 50);
                 }
             } else {
-                alert(data.message || "Failed to delete record");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Deletion failed!',
+                    text: data.message || 'Failed to delete the record.',
+                    confirmButtonText: 'OK'
+                });
             }
         } catch (error) {
             console.error("Error deleting record:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'An error occurred!',
+                text: 'Something went wrong. Please try again later.',
+                confirmButtonText: 'OK'
+            });
         }
-    }
+    }    
 
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.trim();
@@ -300,60 +367,92 @@ document.addEventListener("DOMContentLoaded", function () {
         if (event.target.classList.contains("edit-btn")) {
             const inventoryId = event.target.getAttribute("data-id");
             if (!inventoryId) return;
-
+    
             try {
                 const response = await fetch(`/api/auth/admin/inventory/${inventoryId}`);
                 const data = await response.json();
-
+    
                 if (data.success) {
                     document.querySelector("#editInventoryId").value = inventoryId;
                     document.querySelector("#editProductName").value = data.inventory.productName;
                     document.querySelector("#editQuantity").value = data.inventory.quantity;
                     document.querySelector("#editUnit").value = data.inventory.unit;
-
+    
                     editModal.show(); 
                 } else {
-                    alert("Error: Inventory data not found.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: "Inventory data not found.",
+                        confirmButtonText: 'OK'
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching inventory:", error);
-                alert("Failed to load inventory details.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to Load Inventory!',
+                    text: "An error occurred while fetching the inventory details. Please try again later.",
+                    confirmButtonText: 'OK'
+                });
             }
         }
-    });
+    });    
 
     editForm.addEventListener("submit", async (event) => {
         event.preventDefault();
-
+    
         const inventoryId = document.querySelector("#editInventoryId").value;
         const productName = document.querySelector("#editProductName").value.trim();
         const quantity = document.querySelector("#editQuantity").value.trim();
         const unit = document.querySelector("#editUnit").value.trim();
-
+    
         if (!productName || !quantity || !unit) {
-            alert("Please fill in all fields.");
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Information',
+                text: "Please fill in all fields.",
+                confirmButtonText: 'OK'
+            });
             return;
         }
-
+    
         try {
             const response = await fetch(`/api/auth/admin/inventory/update/${inventoryId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ productName, quantity, unit })
             });
-
+    
             const result = await response.json();
-
+    
             if (result.success) {
-                alert("Inventory updated successfully!");
-                editModal.hide(); 
-                location.reload(); 
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: "Inventory updated successfully!",
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    editModal.hide(); 
+                    location.reload(); 
+                });
             } else {
-                alert(result.message || "Failed to update inventory.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed!',
+                    text: result.message || "Failed to update inventory.",
+                    confirmButtonText: 'OK'
+                });
             }
         } catch (error) {
             console.error("Error updating inventory:", error);
-            alert("An error occurred while updating.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: "An error occurred while updating.",
+                confirmButtonText: 'OK'
+            });
         }
     });
+    
 });
