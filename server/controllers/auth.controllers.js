@@ -1,4 +1,3 @@
-import { generateTokenAndSetCookie } from '../utils/generateTokenAndCookies.js';
 import { connectDB } from '../db/connectDB.js';
 import { Parser } from "json2csv";
 import bcryptjs from 'bcryptjs';
@@ -39,8 +38,6 @@ export const adminRegister = async (req, res) => {
             'INSERT INTO users (adminEmail, adminPassword, adminFirstName, adminLastName) VALUES (?, ?, ?, ?)', 
             [adminEmail, hashedPassword, adminFirstName, adminLastName] 
         );
-
-        generateTokenAndSetCookie(res, admin.lastID); 
 
         res.status(201).json({
             success: true,
@@ -136,8 +133,6 @@ export const adminLogin = async (req, res) => {
             });
         }
 
-        generateTokenAndSetCookie(res, admin.adminId);
-
         await db.run('UPDATE users SET lastLogin = ? WHERE adminId = ?', [new Date().toISOString(), admin.adminId]);
 
         res.status(200).json({
@@ -204,12 +199,12 @@ export const staffLogin = async (req, res) => {
 };
 
 export const adminLogout = async (req, res) => {
-    res.clearCookie("token");
     res.status(200).json({
         success: true,
         message: "Admin logged out successfully!"
     });
 };
+
 
 export const staffLogout = async (req, res) => {
     res.clearCookie("staffToken");
@@ -262,29 +257,68 @@ export const addSchedule = async (req, res) => {
 };
 
 export const addPurchase = async (req, res) => {
-    const { productName, price, quantity, MOP, date } = req.body;
+    const { productName, price, quantity, MOP, date, stallId, unit } = req.body;
 
-    if (!productName || !price || !quantity || !MOP || !date) {
+    if (!productName || !price || !quantity || !MOP || !date || !stallId || !unit) {
         return res.status(400).json({
             success: false,
-            message: "All fields are required"
+            message: "All fields are required, including stallId and unit."
         });
     }
 
     let db;
     try {
         db = await connectDB();
+        await db.run("BEGIN TRANSACTION");
 
-        const product = await db.run(
-            "INSERT INTO products (productName, price, quantity, MOP, date) VALUES (?, ?, ?, ?, ?)", 
-            [productName, price, quantity, MOP, date]
+        let existingProduct = await db.get(
+            "SELECT productId FROM products WHERE productName = ? AND stallId = ?", 
+            [productName, stallId]
         );
+
+        let productId;
+        if (existingProduct) {
+            productId = existingProduct.productId;
+
+            await db.run(
+                `INSERT INTO products (productName, price, quantity, unit, MOP, date, stallId) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+                [productName, price, quantity, unit, MOP, date, stallId]
+            );
+        } else {
+            const newProduct = await db.run(
+                `INSERT INTO products (productName, price, quantity, unit, MOP, date, stallId) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+                [productName, price, quantity, unit, MOP, date, stallId]
+            );
+            productId = newProduct.lastID;
+        }
+
+        const existingInventory = await db.get(
+            "SELECT inventoryId FROM inventory WHERE productId = ? AND stallId = ?", 
+            [productId, stallId]
+        );
+
+        if (existingInventory) {
+            await db.run(
+                "UPDATE inventory SET quantity = quantity + ? WHERE inventoryId = ?", 
+                [quantity, existingInventory.inventoryId]
+            );
+        } else {
+            await db.run(
+                `INSERT INTO inventory (productId, quantity, unit, stallId, dateAdded) 
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`, 
+                [productId, quantity, unit, stallId]
+            );
+        }
+
+        await db.run("COMMIT");
 
         res.status(201).json({
             success: true,
-            message: "Purchase added successfully!",
+            message: "Purchase recorded and inventory updated!",
             purchase: {
-                productId: product.lastID,
+                productId,
                 productName,
                 price,
                 quantity,
@@ -293,17 +327,19 @@ export const addPurchase = async (req, res) => {
             }
         });
     } catch (error) {
+        await db.run("ROLLBACK");
         console.error("Error adding purchase:", error);
         res.status(500).json({
             success: false,
-            message: "Failed to add purchase"
+            message: "Failed to add purchase and update inventory"
         });
     } finally {
         if (db) {
-            await db.close(); 
+            await db.close();
         }
     }
 };
+
 
 export const addMainMenu = async (req, res) => {
     try {
@@ -487,34 +523,39 @@ export const addInventory = async (req, res) => {
 };
 
 export const addSales = async (req, res) => {
-    const { salesDate, canteenId, stallId, cost, cash } = req.body;
+    const { salesDate, canteenId, stallId, productId, quantitySold, totalPrice, profit } = req.body;
 
     let db;
     try {
-        if (!salesDate || !canteenId || !stallId || !cost || !cash) {
-            throw new Error("All fields are required");
+        if (!salesDate || !canteenId || !stallId || !productId || !quantitySold || !totalPrice || !profit) {
+            throw new Error("All required fields must be filled");
         }
 
         db = await connectDB();
 
-        const profit = cash - cost; 
-
         const sales = await db.run(
-            'INSERT INTO sales (salesDate, canteenId, stallId, cost, cash, profit) VALUES (?,?,?,?,?,?)',
-            [salesDate, canteenId, stallId, cost, cash, profit]
+            `INSERT INTO sales (salesDate, canteenId, stallId, productId, quantitySold, totalPrice, profit) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [salesDate, canteenId, stallId, productId, quantitySold, totalPrice, profit]
+        );
+
+        await db.run(
+            `UPDATE inventory SET quantity = quantity - ? WHERE productId = ?`,
+            [quantitySold, productId]
         );
 
         res.status(201).json({
             success: true,
-            message: "Sales added successfully!",
+            message: "Sales record added successfully!",
             sales: {
-                reportId: sales.lastID,
+                saleId: sales.lastID,
                 salesDate,
                 canteenId,
                 stallId,
-                cost,
-                cash,
-                profit 
+                productId,
+                quantitySold,
+                totalPrice,
+                profit
             }
         });
     } catch (error) {
@@ -524,10 +565,43 @@ export const addSales = async (req, res) => {
         });
     } finally {
         if (db) {
-            await db.close(); 
+            await db.close();
         }
     }
 };
+
+
+export const getProduct = async (req, res) => {
+    const { productId } = req.params;
+
+    let db;
+    try {
+        db = await connectDB();
+
+        const product = await db.get(
+            `SELECT productId, productName, price, quantity, unit, MOP, date, stallId 
+             FROM products 
+             WHERE productId = ?`,
+            [productId]
+        );
+
+        console.log("Fetched Product Data from DB:", product);
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+
+        res.json({ success: true, product });
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        res.status(500).json({ success: false, message: "Database query failed" });
+    } finally {
+        if (db) {
+            await db.close();
+        }
+    }
+};
+
 
 export const addStallA = async (req, res) => {
     const { stallName, category } = req.body;
@@ -675,23 +749,48 @@ export const deletePurchase = async (req, res) => {
     let db;
     try {
         db = await connectDB();
+        await db.run("BEGIN TRANSACTION"); 
 
         const product = await db.get('SELECT * FROM products WHERE productId = ?', [productId]);
 
         if (!product) {
             return res.status(404).json({
                 success: false,
-                message: "Product not found"
+                message: "Purchase not found"
             });
+        }
+
+        const inventory = await db.get(
+            "SELECT * FROM inventory WHERE productId = (SELECT productId FROM products WHERE productName = ? AND stallId = ? LIMIT 1)",
+            [product.productName, product.stallId]
+        );
+
+        if (inventory) {
+            const updatedQuantity = inventory.quantity - product.quantity;
+
+            if (updatedQuantity > 0) {
+                await db.run(
+                    "UPDATE inventory SET quantity = ? WHERE productId = ? AND stallId = ?",
+                    [updatedQuantity, inventory.productId, product.stallId]
+                );
+            } else {
+                await db.run(
+                    "DELETE FROM inventory WHERE productId = ? AND stallId = ?",
+                    [inventory.productId, product.stallId]
+                );
+            }
         }
 
         await db.run('DELETE FROM products WHERE productId = ?', [productId]);
 
+        await db.run("COMMIT"); 
+
         res.status(200).json({
             success: true,
-            message: "Purchase deleted successfully!"
+            message: "Purchase deleted successfully, and inventory updated!"
         });
     } catch (error) {
+        await db.run("ROLLBACK"); 
         res.status(500).json({
             success: false,
             message: "An error occurred while deleting the purchase",
@@ -699,19 +798,20 @@ export const deletePurchase = async (req, res) => {
         });
     } finally {
         if (db) {
-            await db.close(); 
+            await db.close();
         }
     }
 };
 
+
 export const deleteSales = async (req, res) => {
-    const { reportId } = req.params;
+    const { saleId } = req.params;
 
     let db;
     try {
         db = await connectDB();
 
-        const sales = await db.get('SELECT * FROM sales WHERE reportId = ?', [reportId]);
+        const sales = await db.get('SELECT * FROM sales WHERE saleId = ?', [saleId]);
 
         if (!sales) {
             return res.status(404).json({
@@ -720,7 +820,7 @@ export const deleteSales = async (req, res) => {
             });
         }
 
-        await db.run('DELETE FROM sales WHERE reportId = ?', [reportId]);
+        await db.run('DELETE FROM sales WHERE saleId = ?', [saleId]);
 
         res.status(200).json({
             success: true,
@@ -971,6 +1071,47 @@ export const viewPurchases = async (req, res) => {
     }
 };
 
+export const viewProducts = async (req, res) => {
+    let db;
+    const { stallId } = req.query; 
+
+    try {
+        db = await connectDB();
+
+        const query = `
+            SELECT productId, productName, price 
+            FROM products 
+            WHERE stallId = ?;
+        `;
+
+        const products = await db.all(query, [stallId]);
+
+        if (products.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No products available for this stall",
+                products: [],
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Products retrieved successfully",
+            products,  
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while retrieving the products",
+            error: error.message,
+        });
+    } finally {
+        if (db) {
+            await db.close(); 
+        }
+    }
+};
+
 export const viewInventory = async (req, res) => {
     const { stallId } = req.params; 
 
@@ -1049,6 +1190,17 @@ export const viewSales = async (req, res) => {
 
         const sales = await db.all('SELECT * FROM sales');
 
+        for (let sale of sales) {
+            const canteen = await db.get('SELECT canteenName FROM canteens WHERE canteenId = ?', [sale.canteenId]);
+            sale.canteenName = canteen ? canteen.canteenName : "N/A";
+
+            const stall = await db.get('SELECT stallName FROM stalls WHERE stallId = ?', [sale.stallId]);
+            sale.stallName = stall ? stall.stallName : "N/A";
+
+            const product = await db.get('SELECT productName FROM products WHERE productId = ?', [sale.productId]);
+            sale.productName = product ? product.productName : "N/A";
+        }
+
         res.status(200).json({
             success: true,
             message: "Sales retrieved successfully",
@@ -1061,7 +1213,9 @@ export const viewSales = async (req, res) => {
             error: error.message
         });
     }
-}
+};
+
+
 
 export const searchPurchases = async (req, res, next) => {
     let db;
@@ -1098,7 +1252,7 @@ export const searchPurchases = async (req, res, next) => {
 };
 
 export const searchInventory = async (req, res, next) => {
-    let db; 
+    let db;
 
     try {
         const searchTerm = req.query.q?.trim() || "";
@@ -1114,10 +1268,11 @@ export const searchInventory = async (req, res, next) => {
         db = await connectDB();
 
         const inventories = await db.all(
-            `SELECT * FROM inventory 
-            WHERE stallId = ? 
-            AND (LOWER(productName) LIKE LOWER(?) 
-            OR LOWER(unit) LIKE LOWER(?))`,
+            `SELECT i.inventoryId, i.productId, p.productName, i.quantity, i.unit, i.stallId, i.dateAdded
+            FROM inventory i
+            JOIN products p ON i.productId = p.productId
+            WHERE i.stallId = ?
+            AND (LOWER(p.productName) LIKE LOWER(?) OR LOWER(i.unit) LIKE LOWER(?))`,
             [stallId, `%${searchTerm}%`, `%${searchTerm}%`]
         );
 
@@ -1131,6 +1286,7 @@ export const searchInventory = async (req, res, next) => {
         }
     }
 };
+
 
 export const updateMenu = async (req, res) => {
     const { menuId } = req.params;
@@ -1216,24 +1372,52 @@ export const updateSchedule = async (req, res) => {
 };
 
 export const updateSales = async (req, res) => {
-    const { reportId } = req.params;
-    const { salesDate, cash, cost, canteenId, stallId } = req.body;
+    const { saleId } = req.params;
+    const { salesDate, canteenId, stallId, productId, quantitySold, profit, totalPrice } = req.body;
 
     let db;
     try {
-        if (!salesDate || !cash || !canteenId || !stallId || !cost) {
+        if (!salesDate || !canteenId || !stallId || !productId || quantitySold === undefined || !profit) {
             throw new Error("All fields are required");
         }
 
-        let profit = cash - cost;  
-
         db = await connectDB();
+
+        const existingSale = await db.get(
+            "SELECT productId, quantitySold FROM sales WHERE saleId = ?",
+            [saleId]
+        );
+
+        if (!existingSale) {
+            return res.status(404).json({
+                success: false,
+                message: "Sale report not found."
+            });
+        }
+
+        const oldProductId = existingSale.productId;
+        const oldQuantitySold = existingSale.quantitySold;
+
+        if (oldProductId !== productId) {
+            const oldInventory = await db.get(
+                "SELECT quantity FROM inventory WHERE productId = ?",
+                [oldProductId]
+            );
+
+            if (oldInventory) {
+                let restoredQuantity = oldInventory.quantity + oldQuantitySold;
+                await db.run(
+                    "UPDATE inventory SET quantity = ? WHERE productId = ?",
+                    [restoredQuantity, oldProductId]
+                );
+            }
+        }
 
         const result = await db.run(
             `UPDATE sales 
-             SET salesDate = ?, cash = ?, cost = ?, canteenId = ?, stallId = ?, profit = ? 
-             WHERE reportId = ?`,
-            [salesDate, cash, cost, canteenId, stallId, profit, reportId]
+             SET salesDate = ?, canteenId = ?, stallId = ?, productId = ?, quantitySold = ?, profit = ?, totalPrice = ?
+             WHERE saleId = ?`,
+            [salesDate, canteenId, stallId, productId, quantitySold, profit, totalPrice, saleId]
         );
 
         if (result.changes === 0) {
@@ -1243,19 +1427,44 @@ export const updateSales = async (req, res) => {
             });
         }
 
+        const newInventoryRecord = await db.get(
+            "SELECT quantity FROM inventory WHERE productId = ?",
+            [productId]
+        );
+
+        if (!newInventoryRecord) {
+            return res.status(404).json({
+                success: false,
+                message: "Inventory record not found for this product."
+            });
+        }
+
+        let newInventoryQuantity = newInventoryRecord.quantity - quantitySold;
+
+        await db.run(
+            "UPDATE inventory SET quantity = ? WHERE productId = ?",
+            [newInventoryQuantity, productId]
+        );
+
         res.status(200).json({
             success: true,
-            message: "Sale report updated successfully!",
+            message: "Sale report and inventory updated successfully!",
             updatedSale: {
-                reportId,
+                saleId,
                 salesDate,
-                cash,
-                cost,
-                profit,  
+                profit,
+                totalPrice,
                 canteenId,
-                stallId
+                stallId,
+                productId,
+                quantitySold
+            },
+            updatedInventory: {
+                productId,
+                newQuantity: newInventoryQuantity
             }
         });
+
     } catch (error) {
         res.status(400).json({
             success: false,
@@ -1284,12 +1493,32 @@ export const updateInventory = async (req, res) => {
         }
 
         db = await connectDB();
+        await db.run("BEGIN TRANSACTION"); 
+
+        const inventory = await db.get(
+            "SELECT productId FROM inventory WHERE inventoryId = ?",
+            [inventoryId]
+        );
+
+        if (!inventory) {
+            return res.status(404).json({
+                success: false,
+                message: "Inventory not found."
+            });
+        }
+
+        const { productId } = inventory;
+
+        await db.run(
+            "UPDATE products SET productName = ? WHERE productId = ?",
+            [productName, productId]
+        );
 
         const result = await db.run(
             `UPDATE inventory 
-             SET productName = ?, quantity = ?, unit = ?, dateAdded = ? 
+             SET quantity = ?, unit = ?, dateAdded = ? 
              WHERE inventoryId = ?`,
-            [productName, quantity, unit, dateAdded, inventoryId]
+            [quantity, unit, dateAdded, inventoryId]
         );
 
         if (result.changes === 0) {
@@ -1298,6 +1527,8 @@ export const updateInventory = async (req, res) => {
                 message: "Inventory not found or no changes made."
             });
         }
+
+        await db.run("COMMIT"); 
 
         res.json({
             success: true,
@@ -1311,10 +1542,12 @@ export const updateInventory = async (req, res) => {
             }
         });
     } catch (error) {
+        await db.run("ROLLBACK"); 
         console.error("Error updating inventory:", error);
         res.status(500).json({
             success: false,
-            message: "Database update failed"
+            message: "Database update failed",
+            error: error.message
         });
     } finally {
         if (db) {
@@ -1322,6 +1555,7 @@ export const updateInventory = async (req, res) => {
         }
     }
 };
+
 
 export const getMenu = async (req, res) => {
     const { menuId } = req.params;
@@ -1398,10 +1632,16 @@ export const getInventory = async (req, res) => {
     let db;
     try {
         db = await connectDB();
+        
         const inventory = await db.get(
-            "SELECT * FROM inventory WHERE inventoryId = ?",
+            `SELECT inventory.*, products.productName 
+             FROM inventory 
+             JOIN products ON inventory.productId = products.productId 
+             WHERE inventory.inventoryId = ?`,
             [inventoryId]
         );
+
+        console.log("Fetched Inventory Data from DB:", inventory); 
 
         if (!inventory) {
             return res.status(404).json({ success: false, message: "Inventory not found" });
@@ -1419,22 +1659,40 @@ export const getInventory = async (req, res) => {
 };
 
 export const getSales = async (req, res) => {
-    const { reportId } = req.params;
+    const { saleId } = req.params;
 
     let db;
     try {
         db = await connectDB();
 
         const sale = await db.get(
-            "SELECT * FROM sales WHERE reportId =?",
-            [reportId]
+            "SELECT * FROM sales WHERE saleId = ?",
+            [saleId]
         );
 
         if (!sale) {
             return res.status(404).json({ success: false, message: "Sale report not found" });
         }
 
-        res.json({ success: true, sale });
+        const stall = await db.get(
+            "SELECT stallName FROM stalls WHERE stallId = ?",
+            [sale.stallId]
+        );
+
+        const product = await db.get(
+            "SELECT productName FROM products WHERE productId = ?",
+            [sale.productId]
+        );
+
+        res.json({
+            success: true,
+            sale: {
+                ...sale,
+                stallName: stall ? stall.stallName : null,
+                productName: product ? product.productName : null
+            }
+        });
+
     } catch (error) {
         console.error("Error fetching sale report:", error);
         res.status(500).json({ success: false, message: "Database query failed" });
@@ -1443,7 +1701,7 @@ export const getSales = async (req, res) => {
             await db.close();
         }
     }
-}
+};
 
 export const filterSales = async (req, res) => {
     const { startDate, endDate } = req.body;
@@ -1451,34 +1709,35 @@ export const filterSales = async (req, res) => {
 
     let db;
     try {
-        db = await connectDB(); 
+        db = await connectDB();
 
-        let query = "SELECT * FROM sales";
-        let params = [];
-
-        if (startDate && endDate) {
-            query += " WHERE DATE(salesDate) >= DATE(?) AND DATE(salesDate) <= DATE(?)";
-            params = [startDate, endDate];
-        }
+        let query = "SELECT * FROM sales WHERE DATE(salesDate) >= DATE(?) AND DATE(salesDate) <= DATE(?)";
+        const params = [startDate, endDate];
 
         console.log("🛠 SQL Query:", query, params);
         const sales = await db.all(query, params);
 
-        console.log("Filtered sales:", sales);
+        for (let sale of sales) {
+            const canteen = await db.get("SELECT canteenName FROM canteens WHERE canteenId = ?", [sale.canteenId]);
+            sale.canteenName = canteen ? canteen.canteenName : "N/A";
+
+            const stall = await db.get("SELECT stallName FROM stalls WHERE stallId = ?", [sale.stallId]);
+            sale.stallName = stall ? stall.stallName : "N/A";
+        }
+
+        console.log("Filtered sales with names:", sales);
 
         res.json({
             sales,
-            noSales: sales.length === 0, 
+            noSales: sales.length === 0,
             noSalesOverall: sales.length === 0 && !startDate && !endDate,
         });
-
     } catch (error) {
         console.error("Database error:", error);
         res.status(500).json({ error: "Internal Server Error" });
-
     } finally {
         if (db) {
-            await db.close(); 
+            await db.close();
             console.log("Database connection closed");
         }
     }
@@ -1508,43 +1767,51 @@ export const exportSalesCSV = async (req, res) => {
     try {
         const { period } = req.params;
         const db = await connectDB();
-        
+
         let query = `
-            SELECT s.stallName, sa.salesDate, sa.profit, sa.cost, sa.cash
+            SELECT c.canteenName, s.stallName, p.productName, sa.salesDate, sa.quantitySold, sa.totalPrice, (sa.quantitySold * p.price) AS totalCost
             FROM sales sa
             JOIN stalls s ON sa.stallId = s.stallId
+            JOIN canteens c ON sa.canteenId = c.canteenId
+            JOIN products p ON sa.productId = p.productId
         `;
 
-        if (period === "weekly") {
+        if (period === "daily") {
+            query += " WHERE sa.salesDate = date('now')";
+        } else if (period === "weekly") {
             query += " WHERE sa.salesDate >= date('now', '-7 days')";
         } else if (period === "monthly") {
             query += " WHERE sa.salesDate >= date('now', '-30 days')";
         } else {
-            return res.status(400).json({ error: "Invalid period. Use 'weekly' or 'monthly'." });
+            return res.status(400).json({ error: "Invalid period. Use 'daily', 'weekly', or 'monthly'." });
         }
 
         query += " ORDER BY sa.salesDate DESC"; 
 
         const salesData = await db.all(query);
 
-        let csv;
         if (salesData.length === 0) {
-            csv = "No sales data available for the selected period.";
-        } else {
-            const totalRow = {
-                stallName: "Total",
-                salesDate: "",
-                profit: salesData.reduce((sum, row) => sum + row.profit, 0),
-                cost: salesData.reduce((sum, row) => sum + row.cost, 0),
-                cash: salesData.reduce((sum, row) => sum + row.cash, 0),
-            };
-
-            salesData.push(totalRow);
-
-            const fields = ["stallName", "salesDate", "profit", "cost", "cash"];
-            const json2csvParser = new Parser({ fields });
-            csv = json2csvParser.parse(salesData);
+            return res.status(404).json({ error: "No sales data available for the selected period." });
         }
+
+        const totalCost = salesData.reduce((sum, row) => sum + row.totalCost, 0);
+        const totalCash = salesData.reduce((sum, row) => sum + row.totalPrice, 0);
+        const totalProfit = totalCash - totalCost;
+
+        salesData.push({
+            canteenName: "TOTAL",
+            stallName: "",
+            productName: "",
+            salesDate: "",
+            quantitySold: "",
+            totalPrice: `**${totalCash.toFixed(2)}**`, 
+            totalCost: `**${totalCost.toFixed(2)}**`, 
+            totalProfit: `**${totalProfit.toFixed(2)}**` 
+        });
+
+        const fields = ["canteenName", "stallName", "productName", "salesDate", "quantitySold", "totalPrice", "totalCost", "totalProfit"];
+        const json2csvParser = new Parser({ fields });
+        const csv = json2csvParser.parse(salesData);
 
         res.header("Content-Type", "text/csv");
         res.attachment(`sales_${period}.csv`);
@@ -1561,22 +1828,30 @@ export const exportSalesPDF = async (req, res) => {
         const db = await connectDB();
 
         let query = `
-            SELECT s.stallName, sa.salesDate, SUM(sa.profit) AS totalProfit, SUM(sa.cost) AS totalCost, SUM(sa.cash) AS totalCash
+            SELECT c.canteenName, s.stallName, p.productName, sa.salesDate, sa.quantitySold, sa.totalPrice, (sa.quantitySold * p.price) AS totalCost
             FROM sales sa
             JOIN stalls s ON sa.stallId = s.stallId
+            JOIN canteens c ON sa.canteenId = c.canteenId
+            JOIN products p ON sa.productId = p.productId
         `;
 
-        if (period === "weekly") {
+        if (period === "daily") {
+            query += " WHERE sa.salesDate = date('now')";
+        } else if (period === "weekly") {
             query += " WHERE sa.salesDate >= date('now', '-7 days')";
         } else if (period === "monthly") {
             query += " WHERE sa.salesDate >= date('now', '-30 days')";
         } else {
-            return res.status(400).json({ error: "Invalid period. Use 'weekly' or 'monthly'." });
+            return res.status(400).json({ error: "Invalid period. Use 'daily', 'weekly', or 'monthly'." });
         }
 
-        query += " GROUP BY s.stallName, sa.salesDate ORDER BY sa.salesDate DESC"; 
+        query += " ORDER BY sa.salesDate DESC"; 
 
         const salesData = await db.all(query);
+
+        if (salesData.length === 0) {
+            return res.status(404).json({ error: "No sales data available for the selected period." });
+        }
 
         const exportDir = path.join(process.cwd(), "exports");
         if (!fs.existsSync(exportDir)) {
@@ -1589,45 +1864,47 @@ export const exportSalesPDF = async (req, res) => {
         const stream = fs.createWriteStream(filePath);
         doc.pipe(stream);
 
-        doc.fontSize(18).text(`Sales Report (${period})`, { align: "center" }).moveDown(1);
+        doc.fontSize(18).text(`Sales Report (${period})`, { align: "center" }).moveDown(2);
 
-        if (salesData.length === 0) {
-            doc.fontSize(14).text("No sales data available for the selected period.", { align: "center" }).moveDown(2);
-        } else {
-            doc.fontSize(12).text("Stall Name", 50, 100, { bold: true });
-            doc.text("Sales Date", 150, 100, { bold: true });
-            doc.text("Profit", 250, 100, { bold: true });
-            doc.text("Cost", 350, 100, { bold: true });
-            doc.text("Cash", 450, 100, { bold: true });
+        doc.fontSize(12).text("Canteen", 40, 100, { bold: true });
+        doc.text("Stall", 130, 100, { bold: true });
+        doc.text("Item", 220, 100, { bold: true });
+        doc.text("Sales Date", 310, 100, { bold: true });
+        doc.text("Qty Sold", 400, 100, { bold: true });
+        doc.text("Total Price", 470, 100, { bold: true });
 
-            let y = 120;
-            let totalProfit = 0;
-            let totalCost = 0;
-            let totalCash = 0;
+        let y = 120;
+        let totalCost = 0;
+        let totalCash = 0;
 
-            salesData.forEach((sale) => {
-                doc.text(sale.stallName, 50, y);
-                doc.text(sale.salesDate, 150, y);
-                doc.text(`₱${sale.totalProfit.toFixed(2)}`, 250, y);
-                doc.text(`₱${sale.totalCost.toFixed(2)}`, 350, y);
-                doc.text(`₱${sale.totalCash.toFixed(2)}`, 450, y);
+        salesData.forEach((sale) => {
+            doc.text(sale.canteenName, 40, y);
+            doc.text(sale.stallName, 130, y);
+            doc.text(sale.productName, 220, y);
+            doc.text(sale.salesDate, 310, y);
+            doc.text(sale.quantitySold.toString(), 400, y);
+            doc.text(`₱${sale.totalPrice.toFixed(2)}`, 470, y);
 
-                totalProfit += sale.totalProfit;
-                totalCost += sale.totalCost;
-                totalCash += sale.totalCash;
+            totalCost += sale.totalCost;
+            totalCash += sale.totalPrice;
+            y += 20;
+        });
 
-                y += 20;
-            });
+        const totalProfit = totalCash - totalCost;
 
-            doc.moveTo(50, y).lineTo(500, y).stroke();
-            y += 10;
+        doc.moveTo(40, y).lineTo(550, y).stroke();
+        y += 10;
 
-            doc.fontSize(12).text("Total", 50, y, { bold: true });
-            doc.text("", 150, y); 
-            doc.text(`₱${totalProfit.toFixed(2)}`, 250, y);
-            doc.text(`₱${totalCost.toFixed(2)}`, 350, y);
-            doc.text(`₱${totalCash.toFixed(2)}`, 450, y);
-        }
+        doc.fontSize(12).font("Helvetica-Bold");
+        doc.text("TOTAL", 40, y);
+        doc.text("", 130, y); 
+        doc.text("", 220, y);
+        doc.text("", 310, y);
+        doc.text("", 400, y);
+        doc.text(`₱${totalCash.toFixed(2)}`, 470, y);
+        y += 20;
+        doc.text(`Total Cost: ₱${totalCost.toFixed(2)}`, 40, y);
+        doc.text(`Total Profit: ₱${totalProfit.toFixed(2)}`, 40, y + 20);
 
         doc.end();
 
@@ -1641,6 +1918,7 @@ export const exportSalesPDF = async (req, res) => {
                 }
             });
         });
+
     } catch (error) {
         console.error("Error exporting sales data to PDF:", error);
         res.status(500).json({ error: "Error exporting sales data to PDF" });
