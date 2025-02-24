@@ -109,19 +109,20 @@
                                 <tr>
                                     <th scope="col">Canteen</th>
                                     <th scope="col">Stall</th>
+                                    <th scope="col">Item</th>
                                     <th scope="col">Sales Date</th>
-                                    <th scope="col">Cost</th>
-                                    <th scope="col">Cash Collected</th>
-                                    <th scope="col">Profit</th>
+                                    <th scope="col">Quantity Sold</th>
+                                    <th scope="col">Total Price</th>
                                     <th scope="col" class="text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="results">
                                 <tr id="no-purchases" style="display: none;">
-                                    <td colspan="7" class="text-center fw-bold text-secondary">No Records Yet</td>
+                                    <td colspan="6" class="text-center fw-bold text-secondary">No Records Yet</td>
                                 </tr>
                             </tbody>
                         </table>
+
                     </div>
                 </div>
             </div>
@@ -136,19 +137,6 @@
                             <div class="mb-6">
                                 <label for="salesDate" class="form-label">Sales Date</label>
                                 <input type="date" class="form-control" id="salesDate" name="salesDate" required>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label for="cost" class="form-label">Cost</label>
-                                    <input type="number" step="0.01" class="form-control" id="cost" name="cost"
-                                        required>
-                                </div>
-                                <div class="col">
-                                    <label for="cash" class="form-label">Cash Collected</label>
-                                    <input type="number" step="0.01" class="form-control" id="cash" name="cash"
-                                        required>
-                                </div>
                             </div>
 
                             <div class="row mb-3">
@@ -169,10 +157,38 @@
                                 </div>
                             </div>
 
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="productId" class="form-label">Product</label>
+                                    <select class="form-select" id="productId" name="productId" required>
+                                        <option selected disabled value="">Select Product</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label for="quantitySold" class="form-label">Quantity Sold</label>
+                                    <input type="number" class="form-control" id="quantitySold" name="quantitySold"
+                                        min="1" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="profit" class="form-label">Price Sold</label>
+                                    <input type="number" step="0.01" class="form-control" id="profit" name="profit"
+                                        required>
+                                </div>
+                                <div class="col">
+                                    <label for="totalPrice" class="form-label">Total Price</label>
+                                    <input type="number" step="0.01" class="form-control" id="totalPrice"
+                                        name="totalPrice" readonly>
+                                </div>
+                            </div>
+
                             <div class="button-container">
                                 <button type="submit" class="btn btn-primary">Add Record</button>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </div>
@@ -193,19 +209,6 @@
 
                             <div class="row mb-3">
                                 <div class="col">
-                                    <label for="editCost" class="form-label">Cost:</label>
-                                    <input type="number" step="0.01" id="editCost" name="cost" class="form-control"
-                                        required>
-                                </div>
-                                <div class="col">
-                                    <label for="editCash" class="form-label">Cash Collected:</label>
-                                    <input type="number" step="0.01" id="editCash" name="cash" class="form-control"
-                                        required>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col">
                                     <label for="editCanteenId" class="form-label">Canteen Name:</label>
                                     <select id="editCanteenId" name="canteenId" class="form-select" required>
                                         <option selected disabled value="">Select Canteen</option>
@@ -219,6 +222,34 @@
                                     <select id="editStallId" name="stallId" class="form-select" required>
                                         <option selected disabled value="">Select Stall</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="editProductId" class="form-label">Product:</label>
+                                    <select id="editProductId" name="productId" class="form-select" required>
+                                        <option selected disabled value="">Select Product</option>
+                                    </select>
+                                </div>
+
+                                <div class="col">
+                                    <label for="editQuantitySold" class="form-label">Quantity Sold:</label>
+                                    <input type="number" class="form-control" id="editQuantitySold" name="quantitySold"
+                                        min="1" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="editProfit" class="form-label">Price Sold:</label>
+                                    <input type="number" step="0.01" class="form-control" id="editProfit" name="profit"
+                                        required>
+                                </div>
+                                <div class="col">
+                                    <label for="editTotalPrice" class="form-label">Total Price:</label>
+                                    <input type="number" step="0.01" class="form-control" id="editTotalPrice"
+                                        name="totalPrice" readonly>
                                 </div>
                             </div>
 
@@ -244,6 +275,7 @@
                     <div class="modal-body">
                         <label for="export-period" class="form-label">Select Period:</label>
                         <select id="export-period" class="form-select">
+                            <option value="daily">Daily</option>
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                         </select>
@@ -261,3 +293,82 @@
 </div>
 
 <script src="/js/adminSales.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.5.1"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const canteenSelect = document.getElementById("canteenId");
+        const stallDropdown = document.getElementById("stallId");
+        const productDropdown = document.getElementById("productId");
+        const quantityInput = document.getElementById("quantitySold");
+        const profitInput = document.getElementById("profit"); 
+        const totalPriceInput = document.getElementById("totalPrice");
+
+        let productPrices = {};
+
+        canteenSelect.addEventListener("change", async function () {
+            const canteenId = this.value;
+            stallDropdown.innerHTML = `<option selected disabled value="">Select a stall</option>`;
+            productDropdown.innerHTML = `<option selected disabled value="">Select Product</option>`; 
+
+            if (!canteenId) return;
+
+            try {
+                const response = await fetch(`/api/auth/admin/view/stalls?canteenId=${canteenId}`);
+                const data = await response.json();
+
+                if (!data.success || !data.stalls.length) {
+                    stallDropdown.innerHTML = `<option selected disabled value="">No stalls available</option>`;
+                    return;
+                }
+
+                data.stalls.forEach(stall => {
+                    const option = document.createElement("option");
+                    option.value = stall.stallId;
+                    option.textContent = stall.stallName;
+                    stallDropdown.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error("Error fetching stalls:", error);
+                stallDropdown.innerHTML = `<option selected disabled value="">Error loading stalls</option>`;
+            }
+        });
+
+        stallDropdown.addEventListener("change", async function () {
+            const stallId = this.value;
+            productDropdown.innerHTML = `<option selected disabled value="">Select Product</option>`; 
+            productPrices = {}; 
+
+            if (!stallId) return;
+
+            try {
+                const response = await fetch(`/api/auth/admin/view/products?stallId=${stallId}`);
+                const data = await response.json();
+
+                if (data.success && data.products.length > 0) {
+                    data.products.forEach(product => {
+                        productPrices[product.productId] = product.price; 
+                        const option = document.createElement("option");
+                        option.value = product.productId;
+                        option.textContent = product.productName;
+                        productDropdown.appendChild(option);
+                    });
+                } else {
+                    productDropdown.innerHTML = `<option selected disabled value="">No products available</option>`;
+                }
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        });
+
+        productDropdown.addEventListener("change", updateTotalPrice);
+        quantityInput.addEventListener("input", updateTotalPrice);
+        profitInput.addEventListener("input", updateTotalPrice); 
+
+        function updateTotalPrice() {
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const priceSold = parseFloat(profitInput.value) || 0; 
+            totalPriceInput.value = (quantity * priceSold).toFixed(2);
+        }
+    });
+</script>
