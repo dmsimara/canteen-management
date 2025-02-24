@@ -43,8 +43,11 @@ export const connectDB = async () => {
                 productName TEXT NOT NULL,
                 price REAL NOT NULL,
                 quantity INTEGER NOT NULL,
+                unit TEXT NOT NULL,
                 MOP TEXT NOT NULL,
-                date TEXT NOT NULL
+                date TEXT NOT NULL,
+                stallId INTEGER NOT NULL,
+                FOREIGN KEY (stallId) REFERENCES stalls(stallId)
             );
         `);
 
@@ -80,42 +83,34 @@ export const connectDB = async () => {
         await db.exec(`
             CREATE TABLE IF NOT EXISTS inventory (
                 inventoryId INTEGER PRIMARY KEY AUTOINCREMENT,
-                productName TEXT NOT NULL,
+                productId INTEGER NOT NULL,
                 quantity INTEGER NOT NULL,
                 unit TEXT NOT NULL,
                 stallId INTEGER NOT NULL,
                 dateAdded TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+                FOREIGN KEY (productId) REFERENCES products(productId) ON DELETE CASCADE,
                 FOREIGN KEY (stallId) REFERENCES stalls(stallId) ON DELETE CASCADE
             );
         `);
 
         await db.exec(`
-            CREATE TABLE IF NOT EXISTS sales_reports (
-                reportId INTEGER PRIMARY KEY AUTOINCREMENT,
+            CREATE TABLE IF NOT EXISTS sales (
+                saleId INTEGER PRIMARY KEY AUTOINCREMENT,
                 stallId INTEGER NOT NULL,
                 canteenId INTEGER NOT NULL,
-                profit REAL NOT NULL,
-                cost REAL NOT NULL,
-                cash REAL NOT NULL,
+                productId INTEGER NOT NULL,
+                quantitySold INTEGER NOT NULL,
+                totalPrice REAL NOT NULL,
+                profit REAL DEFAULT NULL,
+                cost REAL DEFAULT NULL,
+                cash REAL DEFAULT NULL,
                 salesDate TEXT NOT NULL DEFAULT CURRENT_DATE,
                 FOREIGN KEY (stallId) REFERENCES stalls(stallId) ON DELETE CASCADE,
-                FOREIGN KEY (canteenId) REFERENCES canteens(canteenId) ON DELETE CASCADE
+                FOREIGN KEY (canteenId) REFERENCES canteens(canteenId) ON DELETE CASCADE,
+                FOREIGN KEY (productId) REFERENCES inventory(productId) ON DELETE CASCADE
             );
         `);
-
-        await db.exec(`
-            CREATE TABLE IF NOT EXISTS sales(
-                reportId INTEGER PRIMARY KEY AUTOINCREMENT,
-                stallId INTEGER NOT NULL,
-                canteenId INTEGER NOT NULL,
-                profit REAL NOT NULL,
-                cost REAL NOT NULL,
-                cash REAL NOT NULL,
-                salesDate TEXT NOT NULL DEFAULT CURRENT_DATE,
-                FOREIGN KEY (stallId) REFERENCES stalls(stallId) ON DELETE CASCADE,
-                FOREIGN KEY (canteenId) REFERENCES canteens(canteenId) ON DELETE CASCADE
-            );
-        `);
+        
 
         await db.exec(`
             CREATE TABLE IF NOT EXISTS menu (
@@ -149,6 +144,8 @@ export const connectDB = async () => {
         `);        
 
         await db.run("COMMIT");
+
+        await db.exec("PRAGMA journal_mode=WAL;");
 
         return db;
     } catch (error) {
