@@ -98,66 +98,85 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("purchaseForm");
-    const submitButton = form.querySelector("button[type='submit']");
+    const canteenSelect = document.getElementById("canteenId");
+    const stallSelect = document.getElementById("stallId");
+
+    canteenSelect.addEventListener("change", async () => {
+        const canteenId = canteenSelect.value;
+        stallSelect.innerHTML = `<option selected disabled value="">Loading stalls...</option>`;
+
+        try {
+            const response = await fetch(`/api/auth/admin/view/stalls?canteenId=${canteenId}`);
+            const data = await response.json();
+
+            if (!data.success || !data.stalls.length) {
+                stallSelect.innerHTML = `<option selected disabled value="">No stalls available</option>`;
+                return;
+            }
+
+            stallSelect.innerHTML = `<option selected disabled value="">Select a stall</option>`;
+            data.stalls.forEach(stall => {
+                const option = document.createElement("option");
+                option.value = stall.stallId;
+                option.textContent = stall.stallName;
+                stallSelect.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error("Error fetching stalls:", error);
+            stallSelect.innerHTML = `<option selected disabled value="">Error loading stalls</option>`;
+        }
+    });
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const productName = document.getElementById("productName").value.trim();
-        const price = parseFloat(document.getElementById("price").value).toFixed(2);
+        const price = parseFloat(document.getElementById("price").value);
         const quantity = parseInt(document.getElementById("quantity").value, 10);
+        const unit = document.getElementById("unit").value;
         const MOP = document.getElementById("MOP").value;
         const date = document.getElementById("date").value;
+        const stallId = stallSelect.value ? parseInt(stallSelect.value) : null;
 
-        submitButton.disabled = true;
+        if (!productName || isNaN(price) || isNaN(quantity) || !unit || !MOP || !date || isNaN(stallId)) {
+            swal({
+                title: "Error",
+                text: "Please fill out all fields correctly, including selecting a stall.",
+                icon: "warning",
+                button: "OK",
+            });
+            return;
+        }
+
+        console.log("Sending request:", JSON.stringify({
+            productName, price, quantity, unit, MOP, date, stallId
+        }));
 
         try {
             const response = await fetch("/api/auth/admin/add/purchase", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    productName,
-                    price: parseFloat(price),
-                    quantity,
-                    MOP,
-                    date,
-                }),
+                body: JSON.stringify({ productName, price, quantity, unit, MOP, date, stallId })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                swal({
-                    title: "Success!",
-                    text: data.message,
-                    icon: "success",
-                    button: "OK",
-                }).then(() => {
-                    window.location.reload(); 
-                });
+                swal({ title: "Success!", text: data.message, icon: "success", button: "OK" })
+                    .then(() => {
+                        form.reset();
+                        window.location.reload();
+                    });
             } else {
-              
-                swal({
-                    title: "Error",
-                    text: data.message || "Failed to add purchase. Please try again.",
-                    icon: "error",
-                    button: "Try Again",
-                });
+                swal({ title: "Error", text: data.message || "Failed to add purchase.", icon: "error", button: "Try Again" });
             }
         } catch (error) {
-            swal({
-                title: "Oops!",
-                text: "An error occurred. Please try again later.",
-                icon: "error",
-                button: "OK",
-            });
+            swal({ title: "Oops!", text: "An error occurred.", icon: "error", button: "OK" });
             console.error("Error:", error);
-        } finally {
-            submitButton.disabled = false;
         }
     });
 });
-
 
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.querySelector("#search");
@@ -338,4 +357,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
     loadData();
 });
-
