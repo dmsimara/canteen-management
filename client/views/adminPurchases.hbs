@@ -129,7 +129,8 @@
                                     <label for="price" class="form-label">PRICE (EACH)</label>
                                     <div class="input-group">
                                         <span class="input-group-text">₱</span>
-                                        <input type="text" class="form-control" id="price" name="price" pattern="^\d+(\.\d{1,2})?$" required>
+                                        <input type="text" class="form-control" id="price" name="price"
+                                            pattern="^\d+(\.\d{1,2})?$" required>
                                     </div>
                                 </div>
                                 <div class="col">
@@ -144,6 +145,17 @@
 
                             <div class="row mb-3">
                                 <div class="col">
+                                    <label for="unit" class="form-label">UNIT</label>
+                                    <select class="form-select" id="unit" name="unit" required>
+                                        <option selected disabled value="">Select Unit</option>
+                                        <option value="pieces">Pieces</option>
+                                        <option value="kg">Kilograms</option>
+                                        <option value="liters">Liters</option>
+                                        <option value="packs">Packs</option>
+                                        <option value="boxes">Boxes</option>
+                                    </select>
+                                </div>
+                                <div class="col">
                                     <label for="MOP" class="form-label">MODE OF PAYMENT</label>
                                     <select class="form-select" id="MOP" name="MOP" required>
                                         <option selected disabled value=""></option>
@@ -152,16 +164,39 @@
                                         <option value="Credit">Credit (Accounts Payable)</option>
                                     </select>
                                 </div>
+                            </div>
 
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="canteenId" class="form-label">Canteen Name</label>
+                                    <select class="form-select" id="canteenId" name="canteenId" required>
+                                        <option selected disabled value="">Select Canteen</option>
+                                        <option value="1">Main Canteen</option>
+                                        <option value="2">Secondary Canteen</option>
+                                    </select>
+                                </div>
+
+                                <div class="col">
+                                    <label for="stallId" class="form-label">Stall Name</label>
+                                    <select class="form-select" id="stallId" name="stallId" required>
+                                        <option selected disabled value="">Select Stall</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="row mb-3">
                                 <div class="col">
                                     <label for="date" class="form-label">DATE</label>
                                     <input type="date" class="form-control" id="date" name="date" required>
                                 </div>
                             </div>
+
                             <div class="button-container">
                                 <button type="submit" class="btn btn-primary">Add Purchase</button>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </div>
