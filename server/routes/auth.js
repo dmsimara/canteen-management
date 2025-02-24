@@ -1,6 +1,6 @@
 import express from 'express';
 import { upload } from '../middleware/upload.js';
-import { addInventory, addMainMenu, addPurchase, addSales, addSchedule, addSecondMenu, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deleteMenu, deletePurchase, deleteSales, deleteSchedule, deleteStall, exportSalesCSV, exportSalesPDF, filterSales, getInventory, getMenu, getSales, getSchedules, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, updateMenu, updateSales, updateSchedule, viewInventory, viewMenu, viewPurchases, viewSales, viewSchedule, viewSecondMenu, viewStalls, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
+import { addInventory, addMainMenu, addPurchase, addSales, addSchedule, addSecondMenu, addStallA, addStallB, adminLogin, adminLogout, adminRegister, deleteInventory, deleteMenu, deletePurchase, deleteSales, deleteSchedule, deleteStall, exportSalesCSV, exportSalesPDF, filterSales, getInventory, getMenu, getProduct, getSales, getSchedules, searchInventory, searchPurchases, staffLogin, staffLogout, staffRegister, updateInventory, updateMenu, updateSales, updateSchedule, viewInventory, viewMenu, viewProducts, viewPurchases, viewSales, viewSchedule, viewSecondMenu, viewStalls, viewStallsA, viewStallsB } from '../controllers/auth.controllers.js';
 
 const router = express.Router();
 
@@ -10,6 +10,7 @@ router.post("/admin/login", adminLogin);
 router.post("/admin/add/purchase", addPurchase);
 router.delete('/admin/purchases/:productId', deletePurchase);
 router.get("/admin/view/purchases", viewPurchases);
+router.get("/admin/view/products", viewProducts);
 router.get("/admin/search", searchPurchases);
 router.post("/admin/inventory/stall/a", addStallA);
 router.post("/admin/inventory/stall/b", addStallB);
@@ -22,11 +23,12 @@ router.get("/admin/view/inventory/:stallId", viewInventory);
 router.get("/admin/search/inventory", searchInventory);
 router.patch("/admin/inventory/update/:inventoryId", updateInventory);
 router.get("/admin/inventory/:inventoryId", getInventory);
+router.get("/admin/product/:productId", getProduct);
 router.post("/admin/add/sales", addSales);
-router.delete('/admin/sales/:reportId', deleteSales);
+router.delete('/admin/sales/:saleId', deleteSales);
 router.get("/admin/view/sales", viewSales);
-router.patch("/admin/sales/update/:reportId", updateSales);
-router.get("/admin/sales/edit/:reportId", getSales);
+router.patch("/admin/sales/update/:saleId", updateSales);
+router.get("/admin/sales/edit/:saleId", getSales);
 router.post("/admin/filter/sales", filterSales);
 router.get("/admin/view/stalls", viewStalls);
 router.get("/admin/export/sales/csv/:period", exportSalesCSV);
